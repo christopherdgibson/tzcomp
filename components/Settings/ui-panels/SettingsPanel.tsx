@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { StyleProp, StyleSheet, Switch, Text, TextStyle, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '@/hooks/use-theme';
-import { useSettings } from '@/hooks/use-settings';
+import { useSettings } from '@/contexts/settings-context';
 
 export default function SettingsPanel({ style }: { style?: any }) {
   const theme = useTheme();
@@ -10,7 +10,6 @@ export default function SettingsPanel({ style }: { style?: any }) {
 
   return (
     <View style={[styles.settingsPanel, style]}>
-
       <SettingsRow label="24-hour time">
         <Switch
           value={settings.use24Hour}

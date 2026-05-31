@@ -1,6 +1,20 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Settings, DEFAULT_SETTINGS } from '@/hooks/use-settings';
+
+export type DateFormat = 'DMY' | 'MDY';
+
+export type Settings = {
+  use24Hour: boolean;
+  showSeconds: boolean;
+  dateFormat: DateFormat;
+  dateLong: boolean;
+};
+export const DEFAULT_SETTINGS: Settings = {
+  use24Hour: true,
+  showSeconds: true,
+  dateFormat: 'DMY',
+  dateLong: true,
+};
 
 export const SettingsContext = createContext<{
   settings: Settings;
@@ -25,3 +39,5 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     </SettingsContext.Provider>
   );
 }
+
+export const useSettings = () => useContext(SettingsContext);

@@ -7,7 +7,7 @@ import type { Dispatch, SetStateAction } from "react";
 import type { OnChange } from '@/constants/types';
 
 import { useTheme } from '@/hooks/use-theme';
-import { useSettings } from '@/hooks/use-settings';
+import { useSettings } from '@/contexts/settings-context';
 import { Typography } from '@/constants/theme';
 
 import TimeZoneDropdown from "@/components/dropdowns/TimeZoneDropdown";
