@@ -3,6 +3,9 @@
 # dependencies
 node_modules/
 
+#drafts
+drafts/
+
 # Expo
 .expo/
 dist/
@@ -29,8 +32,18 @@ yarn-error.*
 .DS_Store
 *.pem
 
+# local dev files
+.vs/
+.vscode/
+.idea/
+
 # local env files
+.env
 .env*.local
 
 # typescript
 *.tsbuildinfo
+
+# Keystore key
+*.keystore
+android/app/my-release-key.keystore

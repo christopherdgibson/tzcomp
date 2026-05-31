@@ -1,0 +1,16 @@
+diff --git a/node_modules/react-native-color-picker/src/HoloColorPicker.tsx b/node_modules/react-native-color-picker/src/HoloColorPicker.tsx
+index 51a7bcc..4a6d1f4 100644
+--- a/node_modules/react-native-color-picker/src/HoloColorPicker.tsx
++++ b/node_modules/react-native-color-picker/src/HoloColorPicker.tsx
+@@ -1,10 +1,10 @@
+ import React from "react"
++import Slider from '@react-native-community/slider'
+ import {
+   I18nManager,
+   Image,
+   InteractionManager,
+   PanResponderInstance,
+-  Slider,
+   StyleSheet,
+   TouchableOpacity,
+   View,
