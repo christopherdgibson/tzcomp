@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
@@ -41,17 +41,18 @@ interface TimeZoneCardProps {
 
 interface CompareZoneProps {
   timeZone?: string;
-  difference: number;
+  utcOffset: number;
 }
 
 export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOverrideTime, timeZoneDefault}: TimeZoneCardProps) {
     const {settings} = useSettings();
     const theme = useTheme();
     const styles = makeStyles(theme);
-    const [compareZone, setCompareZone] = useState<CompareZoneProps | null>({timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, difference: 0});
+    const [compareZone, setCompareZone] = useState<CompareZoneProps | null>({timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, utcOffset: 0});
+    const [isPm, setIsPm] = useState<boolean>(false);
     const [apiError, setApiError] = useState<string | null>(null);
     const [isTimeSelectOpen, setIsTimeSelectOpen] = useState<boolean>(false);
-    const timeZoneLocals = refreshTimeZoneLocals(compareZone?.timeZone, compareZone?.difference);
+    const timeZoneLocals = refreshTimeZoneLocals(compareZone?.timeZone, compareZone?.utcOffset);
 
     useEffect(() => {
         if (timeZoneDefault == null) {
@@ -64,16 +65,13 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
     async function handleZoneSelect(timeZone: string | null | undefined) {
         if (timeZone == null) return;
         setApiError(null);
-        
         try {
             const utcOffset = getTimezoneOffset(timeZone);
-            console.log('utcOffset:', utcOffset, 'for timezone:', timeZone);
             if (isNaN(utcOffset)) {
             setApiError("Invalid timezone offset");
             return;
             }
-            const difference = utcOffset + time.getTimezoneOffset();
-            setCompareZone({ timeZone, difference });
+            setCompareZone({ timeZone, utcOffset });
         } catch (e) {
             setApiError("Invalid timezone: " + e);
         }
@@ -81,33 +79,6 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
     
     function getTimezoneOffset(timeZone: string, date: Date = new Date()): number {
         try {
-            // Get UTC time parts
-            // const utcFormatter = new Intl.DateTimeFormat('en-US', {
-            // timeZone: 'UTC',
-            // year: 'numeric', month: 'numeric', day: 'numeric',
-            // hour: 'numeric', minute: 'numeric', second: 'numeric',
-            // hour12: false
-            // });
-            
-            // Get target timezone time parts
-            // const tzFormatter = new Intl.DateTimeFormat('en-US', {
-            // timeZone,
-            // year: 'numeric', month: 'numeric', day: 'numeric',
-            // hour: 'numeric', minute: 'numeric', second: 'numeric',
-            // hour12: false
-            // });
-
-            // const utcParts = Object.fromEntries(
-            // utcFormatter.formatToParts(date)
-            //     .filter(p => p.type !== 'literal')
-            //     .map(p => [p.type, parseInt(p.value)])
-            // );
-            // const tzParts = Object.fromEntries(
-            // tzFormatter.formatToParts(date)
-            //     .filter(p => p.type !== 'literal')
-            //     .map(p => [p.type, parseInt(p.value)])
-            // );
-
             const utcParts = timeZoneParts(date, 'UTC', true);
             const tzParts = timeZoneParts(date, timeZone, true);
 
@@ -133,7 +104,7 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
             tzFormatter.formatToParts(date)
                 .filter(p => p.type !== 'literal')
                 .map(p => [p.type, parseInt(p.value)])
-            );
+        );
     }
 
     function getDaysInMonth(time: Date): number {
@@ -142,42 +113,49 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
         return lastDate.getDate() - firstDate.getDate() + 1;
     }
 
-    function refreshTimeZoneLocals(timeZone: string | null | undefined, difference: number | null | undefined): TimeZoneLocalsProps | undefined {
-        if (timeZone == null || difference == null) return;
-        const localTime = new Date((overrideTime ?? time).getTime() + difference * 60000);
-        //setCompareTime(new Date(time.getTime() + difference * 60000));
+    function refreshTimeZoneLocals(timeZone: string | null | undefined, utcOffset: number | null | undefined): TimeZoneLocalsProps | undefined {
+        if (timeZone == null || utcOffset == null) return;
+        const baseTime = overrideTime ?? time;
+        const localTime = new Date(baseTime.getTime() + utcOffset * 60000);
         if (localTime == null) return;
+
+        const parts = timeZoneParts(baseTime, timeZone, true);
+
+        // let timeHours;
+        // if (!settings.use24Hour) {
+        //     setIsPm(parts.hours >= 12)
+        //     timeHours = getHours12h(parts.hours);
+        // } else {
+        //     timeHours = parts.hours;
+        // }
+
         return {
             timeZoneName: timeZone,
-            localTime: localTime,
-            timeFullDate: localTime.toLocaleString("default", {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                }),
-            timeDate: localTime.getDate(),
-            timeMonth: localTime.getMonth(),
-            timeYear: localTime.getFullYear(),
-            timeDow: localTime.toLocaleString("default", { weekday: "long" }),
-            timeHours: localTime.getHours(),
-            timeMinutes: localTime.getMinutes(),
-            timeSeconds: localTime.getSeconds(),
-            timeZoneShort: timeZone
-                ? new Intl.DateTimeFormat("default", {
-                    timeZoneName: "short",
-                    timeZone: timeZone,
-                    })
-                    .formatToParts(time)
-                    .find((p) => p.type === "timeZoneName")?.value
-                : null,
-            timeZoneLong: timeZone
-                ? new Intl.DateTimeFormat("default", {
-                    timeZoneName: "long",
-                    timeZone: timeZone,
-                    })
-            .formatToParts(time)
-            .find((p) => p.type === "timeZoneName")?.value
-                : null
+            localTime,
+            // timeFullDate: localTime.toLocaleString("default", {
+            //     day: "numeric", month: "long", year: "numeric",
+            // }),
+            timeFullDate: new Intl.DateTimeFormat("default", {
+                day: "numeric", month: "long", year: "numeric",
+                timeZone,
+            }).format(baseTime),
+            timeDate: parts.day,
+            timeMonth: parts.month - 1,  // Intl months are 1-based, JS months are 0-based
+            timeYear: parts.year,
+            // timeDow: localTime.toLocaleString("default", { weekday: "long" }),
+            timeDow: new Intl.DateTimeFormat("default", {
+                weekday: "long",
+                timeZone,
+            }).format(baseTime),
+            timeHours: parts.hour,
+            timeMinutes: parts.minute,
+            timeSeconds: parts.second,
+            timeZoneShort: new Intl.DateTimeFormat("default", {
+                timeZoneName: "short", timeZone,
+            }).formatToParts(time).find(p => p.type === "timeZoneName")?.value ?? null,
+            timeZoneLong: new Intl.DateTimeFormat("default", {
+                timeZoneName: "long", timeZone,
+            }).formatToParts(time).find(p => p.type === "timeZoneName")?.value ?? null,
         } as TimeZoneLocalsProps;
     }
 
@@ -193,24 +171,12 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                 <View style={styles.cardWrapper}>
                     <View style={styles.clockCard}>
                         <View style={styles.header}>
-                            <View style={styles.clockIana}>
-                                <TimeZoneDropdown
-                                    defaultOption={timeZoneLocals?.timeZoneName}
-                                    dropdownOptions={timeZoneNames}
-                                    onOptionSelect={(timeZone: string) => handleZoneSelect(timeZone)}
-                                />
-                            </View>
-                            {/* <LinearGradient
-                                colors={theme.dividerBarGrad}
-                                start={{ x: 0, y: 0 }}
-                                end={{ x: 1, y: 0 }}
-                                style={styles.svgIcon}
-                            >
-                                <Ionicons name="globe-outline" size={24} color={theme.dividerBarGrad} />
-                            </LinearGradient> */}
-                            <MaterialCommunityIcons name="timetable"  style={styles.textIcon} colors={theme.dividerBarGrad}/>
-                            {/* <GradientIcon/> */}
-                           
+                            <TimeZoneDropdown style={styles.clockIana}
+                                defaultOption={timeZoneLocals?.timeZoneName}
+                                dropdownOptions={timeZoneNames}
+                                onOptionSelect={(timeZone: string) => handleZoneSelect(timeZone)}
+                            />
+                            <MaterialCommunityIcons name="timetable"  style={styles.textIcon} colors={theme.dividerBarGrad}/>                           
                         </View>
                         {/* <View style={styles.accentLine}></View> */}
                             <LinearGradient
@@ -233,7 +199,7 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                                     max={getDaysInMonth(timeZoneLocals?.localTime ?? time)}
                                     onOptionSelect={
                                         (day) => {
-                                            const adjustment = (compareZone?.difference ?? 0) * 60000;
+                                            const adjustment = (compareZone?.utcOffset ?? 0) * 60000;
                                             setOverrideTime(new Date(new Date(timeZoneLocals?.localTime ?? time).setDate(day) - adjustment));
                                         }
                                     }
@@ -246,7 +212,7 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                                 max={11}
                                 onOptionSelect={
                                     (month) => { 
-                                        const adjustment = (compareZone?.difference ?? 0) * 60000;
+                                        const adjustment = (compareZone?.utcOffset ?? 0) * 60000;
                                         setOverrideTime(new Date(new Date(timeZoneLocals?.localTime ?? time).setMonth(month) - adjustment));
                                     }
                                 }
@@ -261,7 +227,7 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                                     max={getDaysInMonth(timeZoneLocals?.localTime ?? time)}
                                     onOptionSelect={
                                         (day) => {
-                                            const adjustment = (compareZone?.difference ?? 0) * 60000;
+                                            const adjustment = (compareZone?.utcOffset ?? 0) * 60000;
                                             setOverrideTime(new Date(new Date(timeZoneLocals?.localTime ?? time).setDate(day) - adjustment));
                                         }
                                     }
@@ -271,7 +237,7 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                                 style={styles.numberUpDown}
                                 input={timeZoneLocals?.timeYear} onChange={
                                     (year) => { 
-                                        const adjustment = (compareZone?.difference ?? 0) * 60000;
+                                        const adjustment = (compareZone?.utcOffset ?? 0) * 60000;
                                         setOverrideTime(new Date(new Date(timeZoneLocals?.localTime ?? time).setFullYear(year) - adjustment));
                                     }
                                 }
@@ -293,7 +259,7 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                                     max={23}
                                     onOptionSelect={
                                         (hours) => {
-                                            const adjustment = (compareZone?.difference ?? 0) * 60000;
+                                            const adjustment = (compareZone?.utcOffset ?? 0) * 60000;
                                             setOverrideTime(new Date(new Date(timeZoneLocals?.localTime ?? time).setHours(hours) - adjustment));
                                         }
                                     }
@@ -309,7 +275,7 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                                     max={59}
                                     onOptionSelect={
                                         (minutes) => {
-                                            const adjustment = (compareZone?.difference ?? 0) * 60000;
+                                            const adjustment = (compareZone?.utcOffset ?? 0) * 60000;
                                             setOverrideTime(new Date(new Date(timeZoneLocals?.localTime ?? time).setMinutes(minutes) - adjustment));
                                         }
                                     }
@@ -325,8 +291,23 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                                     </>
                                     )
                                 }
+                                {!settings.use24Hour && (overrideTime == null ? <Text style={styles.clockAmPm}>am</Text> :
+                                null
+                                    // <Switch
+                                    //       value={settings.showSeconds}
+                                    //       onValueChange={(v) => setSetting('showSeconds', v)}
+                                    //       thumbColor={theme.accentPrimary}
+                                    //       trackColor={{ false: theme.bgSelected, true: theme.accentSecondary }}
+                                    //     />
+                                //     <TimeZoneDropdown
+                                //     style={{borderColor: theme.fontColor}}
+                                //     defaultOption={getHoursAmPm(timeZoneLocals?.timeHours)}
+                                //     dropdownOptions={['am', 'pm']}
+                                //     onOptionSelect={(timeZone: string) => null}
+                                // />
+                            )
+                                }
                                 {overrideTime !== null &&
-                                 <Text style={styles.clockDigitsSs}>
                                     <TouchableOpacity
                                         style={styles.btnThemePrimary}
                                         onPress={() => {
@@ -336,7 +317,6 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                                     >
                                         <Text style={styles.primaryText}>Reset</Text>
                                     </TouchableOpacity>
-                                    </Text>
                                 }
                             {/* </Text> */}
                         </View>
@@ -447,7 +427,6 @@ const makeStyles = (theme: ReturnType<typeof useTheme>) =>
             height: 2,
             borderRadius: 1,
             marginBottom: 10,
-            // LinearGradient again here, but as a thin bar
         },
         clockTime: {
             alignItems: 'center',
@@ -468,6 +447,13 @@ const makeStyles = (theme: ReturnType<typeof useTheme>) =>
             marginTop: 'auto',
             marginBottom: 'auto',
             color: theme.fontColor,
+        },
+        clockAmPm: {
+            fontSize: 13,
+            opacity: 0.6,
+            flex: 1,
+            color: theme.fontColor,
+            marginTop: 10,
         },
         clockSep: {
             fontSize: 32,

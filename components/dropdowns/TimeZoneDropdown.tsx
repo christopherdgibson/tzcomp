@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Modal, ScrollView, StyleProp, StyleSheet, Text, TextInput, TextStyle, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '@/hooks/use-theme';
 
 import type {OnChange} from "@/constants/types";
@@ -10,12 +10,13 @@ import {colorMix} from "@/utils/colorUtils";
 // import "./styles.css";
 
 interface DropdownProps {
+  style?: StyleProp<TextStyle> | undefined,
   defaultOption?: string | null;
   dropdownOptions: string[];
   onOptionSelect: OnChange<string>;
 }
 
-export default function TimeZoneDropdown({ defaultOption, dropdownOptions, onOptionSelect }: DropdownProps): React.JSX.Element {
+export default function TimeZoneDropdown({ style, defaultOption, dropdownOptions, onOptionSelect }: DropdownProps): React.JSX.Element {
   const btnRef = useRef<View>(null);
   const theme = useTheme();
   const styles = makeStyles(theme);
@@ -63,7 +64,7 @@ export default function TimeZoneDropdown({ defaultOption, dropdownOptions, onOpt
   };
 
   return (
-    <View style={styles.textDropdown}>
+    <View style={[style, styles.textDropdown]}>
       <TouchableOpacity ref={btnRef} style={styles.dropbtn} onPress={openDropdown}>
         <View style={styles.dropbtnInner}>
           <Text style={styles.dropbtnText}>{selectedZone}</Text>
