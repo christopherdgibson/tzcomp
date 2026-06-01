@@ -30,7 +30,7 @@ const DEFAULT_CUSTOM: CustomColors = {
 };
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [preset, setPresetState] = useState<PresetKeys>('blue');
+  const [preset, setPresetState] = useState<PresetKeys>('default');
   const [customColors, setCustomColorsState] = useState<CustomColors>(DEFAULT_CUSTOM);
 
   useEffect(() => {

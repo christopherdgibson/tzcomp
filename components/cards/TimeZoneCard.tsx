@@ -14,7 +14,7 @@ import TimeZoneDropdown from "@/components/dropdowns/TimeZoneDropdown";
 import NumberDropdown from "@/components/dropdowns/NumberDropdown";
 import NumberUpDown from "@/components/dropdowns/NumberUpDown";
 import {GradientIcon} from "@/components/GradientIcon";
-import {getHours12h, getMonthShort, padTimeDigits} from "@/utils/timezoneUtils";
+import {getHours12h, getHours24h, getMonthShort, padTimeDigits} from "@/utils/timezoneUtils";
 
 interface TimeZoneLocalsProps {
   timeZoneName: string;
@@ -49,11 +49,12 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
     const theme = useTheme();
     const styles = makeStyles(theme);
     const [compareZone, setCompareZone] = useState<CompareZoneProps | null>({timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, utcOffset: 0});
-    const [isPm, setIsPm] = useState<boolean>(false);
     const [apiError, setApiError] = useState<string | null>(null);
     const [isTimeSelectOpen, setIsTimeSelectOpen] = useState<boolean>(false);
     const timeZoneLocals = refreshTimeZoneLocals(compareZone?.timeZone, compareZone?.utcOffset);
-
+    const isPm = (timeZoneLocals?.timeHours ?? 0) >= 12;
+    const [isPmOverride, setIsPmOverride] = useState<boolean | null>(null);
+    const displayIsPm = isPmOverride ?? isPm;
     useEffect(() => {
         if (timeZoneDefault == null) {
             console.log("useEffect timeZone: ", timeZoneDefault);
@@ -74,6 +75,20 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
             setCompareZone({ timeZone, utcOffset });
         } catch (e) {
             setApiError("Invalid timezone: " + e);
+        }
+    }
+
+    function handleAmPmToggle() {
+        let hoursOverride;
+        if (timeZoneLocals) {
+            hoursOverride = displayIsPm
+            ? timeZoneLocals?.timeHours - 12
+            : timeZoneLocals?.timeHours + 12;
+        }
+        setIsPmOverride(prev => !(prev ?? isPm));
+        const adjustment = (compareZone?.utcOffset ?? 0) * 60000;
+        if (hoursOverride != null) {
+            setOverrideTime(new Date(new Date(timeZoneLocals?.localTime ?? time).setHours(hoursOverride) - adjustment));
         }
     }
     
@@ -120,14 +135,6 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
         if (localTime == null) return;
 
         const parts = timeZoneParts(baseTime, timeZone, true);
-
-        // let timeHours;
-        // if (!settings.use24Hour) {
-        //     setIsPm(parts.hours >= 12)
-        //     timeHours = getHours12h(parts.hours);
-        // } else {
-        //     timeHours = parts.hours;
-        // }
 
         return {
             timeZoneName: timeZone,
@@ -253,14 +260,14 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                             <Text style={styles.clockDigits}>
                                 <NumberDropdown
                                     style={styles.textDropdown}
-                                    defaultOption={timeZoneLocals?.timeHours}
-                                    display={padTimeDigits}
-                                    min={0}
-                                    max={23}
+                                    defaultOption={settings.use24Hour ? timeZoneLocals?.timeHours : getHours12h(timeZoneLocals?.timeHours ?? 0)}
+                                    display={settings.use24Hour ? padTimeDigits : getHours12h}
+                                    min={settings.use24Hour ? 0 : 1}
+                                    max={settings.use24Hour ? 23 : 12}
                                     onOptionSelect={
                                         (hours) => {
                                             const adjustment = (compareZone?.utcOffset ?? 0) * 60000;
-                                            setOverrideTime(new Date(new Date(timeZoneLocals?.localTime ?? time).setHours(hours) - adjustment));
+                                            setOverrideTime(new Date(new Date(timeZoneLocals?.localTime ?? time).setHours(settings.use24Hour ? hours : getHours24h(hours, displayIsPm)) - adjustment));
                                         }
                                     }
                                 />
@@ -291,27 +298,23 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                                     </>
                                     )
                                 }
-                                {!settings.use24Hour && (overrideTime == null ? <Text style={styles.clockAmPm}>am</Text> :
-                                null
-                                    // <Switch
-                                    //       value={settings.showSeconds}
-                                    //       onValueChange={(v) => setSetting('showSeconds', v)}
-                                    //       thumbColor={theme.accentPrimary}
-                                    //       trackColor={{ false: theme.bgSelected, true: theme.accentSecondary }}
-                                    //     />
-                                //     <TimeZoneDropdown
-                                //     style={{borderColor: theme.fontColor}}
-                                //     defaultOption={getHoursAmPm(timeZoneLocals?.timeHours)}
-                                //     dropdownOptions={['am', 'pm']}
-                                //     onOptionSelect={(timeZone: string) => null}
-                                // />
-                            )
+                                {!settings.use24Hour && 
+                                    <View style={styles.clockAmPmToggle}>
+                                        <Text style={styles.clockAmPm}>{displayIsPm ? 'pm' : 'am'}</Text> 
+                                        <Switch
+                                            value={displayIsPm}
+                                            onValueChange={handleAmPmToggle}
+                                            thumbColor={theme.accentPrimary}
+                                            trackColor={{ false: theme.bgSelected, true: theme.accentSecondary }}
+                                            />
+                                    </View>
                                 }
                                 {overrideTime !== null &&
                                     <TouchableOpacity
                                         style={styles.btnThemePrimary}
                                         onPress={() => {
                                             setOverrideTime(null);
+                                            setIsPmOverride(null);
                                             setIsTimeSelectOpen(false);
                                         }}
                                     >
@@ -454,6 +457,12 @@ const makeStyles = (theme: ReturnType<typeof useTheme>) =>
             flex: 1,
             color: theme.fontColor,
             marginTop: 10,
+        },
+        clockAmPmToggle: {
+            flexDirection: 'column',
+            alignSelf: 'stretch',
+            alignItems: 'center',
+            paddingHorizontal: 10,
         },
         clockSep: {
             fontSize: 32,

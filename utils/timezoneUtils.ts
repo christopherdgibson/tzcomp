@@ -20,14 +20,36 @@ export function getMonthShort (input: number | null | undefined): string {
     return new Date(2000, input).toLocaleString("default", { month: "short" });
 }
 
-export function getHours12h(input: number | null | undefined): string {
+export function getHours12h(input: number): number {
+    if (input ===0) {
+        return 12;
+    }
+    if (input <=12) {
+        return input;
+    } else {
+        return (input-12);
+    }
+}
+
+export function getHours24h(input: number, isPm: boolean): number {
+    if (input === 12) {
+        return isPm ? 12 : 0;
+    } 
+     if (isPm) {
+        return (input+12);
+    } else {
+        return input;
+    }
+}
+
+export function getHoursAmPm(input: number | null | undefined): string {
     if (input == null) {
         return "";
     }
 
     if (input <= 12) {
-        return input.toString() + "am";
+        return "am";
     } else {
-        return (input-12).toString() + "pm";
+        return "pm";
     }
 }

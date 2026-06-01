@@ -29,7 +29,7 @@ export default function SettingsPanel({ style }: { style?: any }) {
       </SettingsRow>
 
       <SettingsRow style={{paddingVertical: 20}} label="Date format">
-        <View style={{}}>
+        {/* <View style={{}}> */}
           <View style={styles.segmentedControl}>
             {(['DMY', 'MDY'] as const).map(fmt => (
               <TouchableOpacity
@@ -43,7 +43,7 @@ export default function SettingsPanel({ style }: { style?: any }) {
               </TouchableOpacity>
             ))}
           </View>
-          <View style={{flexDirection: 'row', alignSelf: 'stretch', alignItems: 'center', justifyContent: 'space-between'}}>
+          {/* <View style={{flexDirection: 'row', alignSelf: 'stretch', alignItems: 'center', justifyContent: 'space-between'}}>
             <Text style={styles.settingsLabel}>Num/Long</Text>
             <Switch
               value={settings.showSeconds}
@@ -51,26 +51,9 @@ export default function SettingsPanel({ style }: { style?: any }) {
               thumbColor={theme.accentPrimary}
               trackColor={{ false: theme.bgSelected, true: theme.accentSecondary }}
             />
-          </View>
-        </View>
+          </View> */}
+        {/* </View> */}
       </SettingsRow>
-
-      {/* <SettingsRow label="Week starts on">
-        <View style={styles.segmentedControl}>
-          {(['Monday', 'Sunday'] as const).map(day => (
-            <TouchableOpacity
-              key={day}
-              style={[styles.segment, settings.firstDayOfWeek === day && styles.segmentActive]}
-              onPress={() => setSetting('firstDayOfWeek', day)}
-            >
-              <Text style={[styles.segmentText, settings.firstDayOfWeek === day && styles.segmentTextActive]}>
-                {day}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </SettingsRow> */}
-
     </View>
   );
 }
