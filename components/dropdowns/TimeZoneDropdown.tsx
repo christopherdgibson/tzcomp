@@ -11,12 +11,13 @@ import {colorMix} from "@/utils/colorUtils";
 
 interface DropdownProps {
   style?: StyleProp<TextStyle> | undefined,
+  fontStyle?: StyleProp<TextStyle> | undefined,
   defaultOption?: string | null;
   dropdownOptions: string[];
   onOptionSelect: OnChange<string>;
 }
 
-export default function TimeZoneDropdown({ style, defaultOption, dropdownOptions, onOptionSelect }: DropdownProps): React.JSX.Element {
+export default function TimeZoneDropdown({ style, fontStyle, defaultOption, dropdownOptions, onOptionSelect }: DropdownProps): React.JSX.Element {
   const btnRef = useRef<View>(null);
   const theme = useTheme();
   const styles = makeStyles(theme);
@@ -67,7 +68,7 @@ export default function TimeZoneDropdown({ style, defaultOption, dropdownOptions
     <View style={[style, styles.textDropdown]}>
       <TouchableOpacity ref={btnRef} style={styles.dropbtn} onPress={openDropdown}>
         <View style={styles.dropbtnInner}>
-          <Text style={styles.dropbtnText}>{selectedZone}</Text>
+          <Text style={fontStyle}>{selectedZone}</Text>
           <Text style={styles.dropbtnArrow}>{isDropdownOpen ? '▲' : '▼'}</Text>
         </View>
       </TouchableOpacity>

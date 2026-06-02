@@ -1,7 +1,7 @@
 import { Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { useTheme } from '@/hooks/use-theme';
-
+import { Typography } from '@/constants/theme';
 
 export default function FooterCopyright() {
   const theme = useTheme();
@@ -35,15 +35,15 @@ const makeStyles = (theme: ReturnType<typeof useTheme>) =>
             borderTopColor: theme.bgSelected,
         },
         footerText: {
-            fontSize: 12,
+          ...Typography.sm,
             color: theme.fontSubtle,
         },
             footerDivider: {
-            fontSize: 12,
+              ...Typography.sm,
             color: theme.fontSubtle,
         },
             footerLink: {
-            fontSize: 12,
+              ...Typography.sm,
             color: theme.accentPrimary,
         },
     })

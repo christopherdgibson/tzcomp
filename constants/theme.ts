@@ -142,9 +142,9 @@ export function buildTheme(baseBg: string, fontSelected: string, accentPrimary: 
 }
 
 export const Fonts = {
-  light: 'AvenirLTStd-Light',
-  book: 'AvenirLTStd-Book',
-  heavy: 'AvenirLTStd-Heavy',
+  light: 'AvenirLTStdLight',
+  book: 'AvenirLTStdBook',
+  heavy: 'AvenirLTStdHeavy',
 } as const;
 
 export const FontFallback = Platform.select({

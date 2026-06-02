@@ -79,8 +79,7 @@ const makeStyles = (theme: ReturnType<typeof useTheme>) =>
       // paddingHorizontal: 10,
     },
     localTimeTitle: {
-      ...Typography.lg,
-      fontWeight: 500,
+      ...Typography.lgBook,
       textTransform: 'uppercase',
       color: theme.fontColor,
     },

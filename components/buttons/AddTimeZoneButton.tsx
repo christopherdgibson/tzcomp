@@ -1,5 +1,6 @@
 import type { Dispatch, SetStateAction } from "react";
 import { useTheme } from '@/hooks/use-theme';
+import { Typography } from '@/constants/theme';
 
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -8,48 +9,28 @@ interface AddTimeZoneButtonProps {
     setCompareZones: Dispatch<SetStateAction<number>>;
 }
 
-// import type { CompareZoneProps } from "@block-root/types";
-// function addTimeZone(compareZones: CompareZoneProps[] | null, timeZone: string = "", difference: number = 0): CompareZoneProps[] {
-//   let newCompareZones: CompareZoneProps[];
-//   if (compareZones == null) {
-//     newCompareZones = [{timeZone: timeZone, difference: difference}]
-//   } else {
-//     newCompareZones = [...compareZones,
-//         {timeZone: timeZone, difference: difference}
-//     ];
-//   }
-//   return newCompareZones;
-// }
-// function addTimeZone(compareZones: CompareZoneProps[]): CompareZoneProps[] {
-//     return [
-//         ...compareZones,
-//         {timeZone: "", difference: 0}
-//     ];
-// }
-
-
 export default function AddTimeZoneButton({compareZones, setCompareZones}: AddTimeZoneButtonProps) {
     const theme = useTheme();
     const styles = makeStyles(theme);
     return (
         <View style={styles.btnThemeContainer}>
             <TouchableOpacity
-                style={styles.btnThemePrimary}
+                style={[styles.btnTheme, styles.btnPrimary]}
                 onPress={() => {
                     setCompareZones(compareZones + 1);
                 }}
             >
-                <Text style={styles.primaryText}>Add new time zone</Text>
+                <Text style={[styles.btnText, styles.primaryText]}>Add new time zone</Text>
             </TouchableOpacity>
 
             {compareZones > 1 && 
             <TouchableOpacity
-                style={styles.btnThemeSecondary}
+                style={[styles.btnTheme, styles.btnSecondary]}
                 onPress={() => {
                     setCompareZones(compareZones - 1);
                 }}
             >
-                <Text style={styles.secondaryText}>Remove time zone</Text>
+                <Text style={[styles.btnText, styles.secondaryText]}>Remove time zone</Text>
             </TouchableOpacity>
             }
         </View>
@@ -64,36 +45,29 @@ const makeStyles = (theme: ReturnType<typeof useTheme>) =>
       gap: 10,
     },
 
-    btnThemePrimary: {
+    btnTheme: {
+        borderWidth: 1,
 		borderRadius: 2,
-		fontSize: 13,
 		cursor: 'pointer',
-        backgroundColor: theme.fontColor,
-		color: '#fff',
+        borderColor: theme.fontColor,
         alignItems: 'center',
         alignContent: 'center'
     },
-    primaryText: {
-        color: 'white',
+    btnText: {
+        ...Typography.base,
         paddingVertical: 12,
         paddingHorizontal: 6,
     },
-    btnThemeSecondary: {
-		borderWidth: 1,
-        borderColor: theme.fontColor,
-		borderRadius: 2,
-		fontSize: 13,
-		cursor: 'pointer',
-		color: theme.fontColor,
-        alignItems: 'center',
-        alignContent: 'center',
+    btnPrimary: {
+        backgroundColor: theme.fontColor,
+    },
+    primaryText: {
+        color: 'white',
+    },
+    btnSecondary: {
+		backgroundColor: 'none',
     },
     secondaryText: {
         color: theme.fontColor,
-        paddingVertical: 12,
-        paddingHorizontal: 6,
     },
-	
-   
-
   });

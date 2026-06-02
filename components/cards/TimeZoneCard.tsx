@@ -56,9 +56,10 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
     const [isPmOverride, setIsPmOverride] = useState<boolean | null>(null);
     const displayIsPm = isPmOverride ?? isPm;
     useEffect(() => {
+        // Confirm re-render for savings/debugging
+            console.log("useEffect compareZone: ", compareZone);
+
         if (timeZoneDefault == null) {
-            console.log("useEffect timeZone: ", timeZoneDefault);
-            console.log("useEffect settings.use24Hour: ", settings.use24Hour);
             handleZoneSelect("GMT");
         }
     }, []);
@@ -167,7 +168,6 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
     }
 
     return (
-        <>
         <LinearGradient
             colors={theme.dividerBarGrad}
             start={{ x: 0, y: 0 }}
@@ -179,19 +179,19 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                     <View style={styles.clockCard}>
                         <View style={styles.header}>
                             <TimeZoneDropdown style={styles.clockIana}
+                                fontStyle={styles.tzText}
                                 defaultOption={timeZoneLocals?.timeZoneName}
                                 dropdownOptions={timeZoneNames}
                                 onOptionSelect={(timeZone: string) => handleZoneSelect(timeZone)}
                             />
                             <MaterialCommunityIcons name="timetable"  style={styles.textIcon} colors={theme.dividerBarGrad}/>                           
                         </View>
-                        {/* <View style={styles.accentLine}></View> */}
-                            <LinearGradient
-                                colors={theme.dividerBarGrad}
-                                start={{ x: 0, y: 0 }}
-                                end={{ x: 1, y: 0 }}
-                                style={styles.accentLine}
-                            />
+                        <LinearGradient
+                            colors={theme.dividerBarGrad}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 0 }}
+                            style={styles.accentLine}
+                        />
                         <Text style={styles.clockDow}>
                             {timeZoneLocals?.timeDow}
                         </Text>
@@ -199,7 +199,8 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                             {/* Put day first if DMY setting */}
                             {settings.dateFormat === "DMY" && (
                                 <NumberDropdown
-                                    style={styles.textDropdown}
+                                    style={styles.dropdownBtn}
+                                    fontStyle={styles.dateText}
                                     defaultOption={timeZoneLocals?.timeDate}
                                     display={padTimeDigits}
                                     min={1}
@@ -212,7 +213,8 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                                     }
                                 />
                             )}
-                            <NumberDropdown style={styles.textDropdown}
+                            <NumberDropdown style={styles.dropdownBtn}
+                                fontStyle={styles.dateText}
                                 defaultOption={timeZoneLocals?.timeMonth}
                                 display={getMonthShort}
                                 min={0}
@@ -227,7 +229,8 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                             {/* Put day second if not DMY setting */}
                             {settings.dateFormat !== "DMY" && (
                                 <NumberDropdown
-                                    style={styles.textDropdown}
+                                    style={styles.dropdownBtn}
+                                    fontStyle={styles.dateText}
                                     defaultOption={timeZoneLocals?.timeDate}
                                     display={padTimeDigits}
                                     min={1}
@@ -241,7 +244,8 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                                 />
                             )}
                             <NumberUpDown 
-                                style={styles.numberUpDown}
+                                style={styles.dropdownBtn}
+                                fontStyle={styles.dateText}
                                 input={timeZoneLocals?.timeYear} onChange={
                                     (year) => { 
                                         const adjustment = (compareZone?.utcOffset ?? 0) * 60000;
@@ -257,71 +261,67 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                             style={styles.accentLine}
                         />
                         <View style={styles.clockTime}>
-                            <Text style={styles.clockDigits}>
-                                <NumberDropdown
-                                    style={styles.textDropdown}
-                                    defaultOption={settings.use24Hour ? timeZoneLocals?.timeHours : getHours12h(timeZoneLocals?.timeHours ?? 0)}
-                                    display={settings.use24Hour ? padTimeDigits : getHours12h}
-                                    min={settings.use24Hour ? 0 : 1}
-                                    max={settings.use24Hour ? 23 : 12}
-                                    onOptionSelect={
-                                        (hours) => {
-                                            const adjustment = (compareZone?.utcOffset ?? 0) * 60000;
-                                            setOverrideTime(new Date(new Date(timeZoneLocals?.localTime ?? time).setHours(settings.use24Hour ? hours : getHours24h(hours, displayIsPm)) - adjustment));
-                                        }
+                            <NumberDropdown
+                                style={styles.dropdownBtn}
+                                fontStyle={styles.clockDigits}
+                                defaultOption={settings.use24Hour ? timeZoneLocals?.timeHours : getHours12h(timeZoneLocals?.timeHours ?? 0)}
+                                display={settings.use24Hour ? padTimeDigits : getHours12h}
+                                min={settings.use24Hour ? 0 : 1}
+                                max={settings.use24Hour ? 23 : 12}
+                                onOptionSelect={
+                                    (hours) => {
+                                        const adjustment = (compareZone?.utcOffset ?? 0) * 60000;
+                                        setOverrideTime(new Date(new Date(timeZoneLocals?.localTime ?? time).setHours(settings.use24Hour ? hours : getHours24h(hours, displayIsPm)) - adjustment));
                                     }
-                                />
-                            </Text>
+                                }
+                            />
                             <Text style={styles.clockSep}>:</Text>
-                            <Text style={styles.clockDigits}>
-                                <NumberDropdown
-                                    style={styles.textDropdown}
-                                    defaultOption={timeZoneLocals?.timeMinutes}
-                                    display={padTimeDigits}
-                                    min={0}
-                                    max={59}
-                                    onOptionSelect={
-                                        (minutes) => {
-                                            const adjustment = (compareZone?.utcOffset ?? 0) * 60000;
-                                            setOverrideTime(new Date(new Date(timeZoneLocals?.localTime ?? time).setMinutes(minutes) - adjustment));
-                                        }
+                            <NumberDropdown
+                                style={styles.dropdownBtn}
+                                fontStyle={styles.clockDigits}
+                                defaultOption={timeZoneLocals?.timeMinutes}
+                                display={padTimeDigits}
+                                min={0}
+                                max={59}
+                                onOptionSelect={
+                                    (minutes) => {
+                                        const adjustment = (compareZone?.utcOffset ?? 0) * 60000;
+                                        setOverrideTime(new Date(new Date(timeZoneLocals?.localTime ?? time).setMinutes(minutes) - adjustment));
                                     }
-                                />
-                            </Text>
-                            {/* <Text style={styles.clockDigitsSs}> */}
-                                {overrideTime == null && settings.showSeconds && (
-                                    <>
-                                        <Text style={styles.clockSep}>:</Text>
-                                        <Text style={styles.clockDigitsSs}>
-                                            {padTimeDigits(timeZoneLocals?.timeSeconds)}
-                                        </Text>
-                                    </>
-                                    )
                                 }
-                                {!settings.use24Hour && 
-                                    <View style={styles.clockAmPmToggle}>
-                                        <Text style={styles.clockAmPm}>{displayIsPm ? 'pm' : 'am'}</Text> 
-                                        <Switch
-                                            value={displayIsPm}
-                                            onValueChange={handleAmPmToggle}
-                                            thumbColor={theme.accentPrimary}
-                                            trackColor={{ false: theme.bgSelected, true: theme.accentSecondary }}
-                                            />
-                                    </View>
-                                }
-                                {overrideTime !== null &&
-                                    <TouchableOpacity
-                                        style={styles.btnThemePrimary}
-                                        onPress={() => {
-                                            setOverrideTime(null);
-                                            setIsPmOverride(null);
-                                            setIsTimeSelectOpen(false);
-                                        }}
-                                    >
-                                        <Text style={styles.primaryText}>Reset</Text>
-                                    </TouchableOpacity>
-                                }
-                            {/* </Text> */}
+                            />
+                            {overrideTime == null && settings.showSeconds && (
+                                <>
+                                    <Text style={styles.clockSep}>:</Text>
+                                    <Text style={styles.clockDigitsSs}>
+                                        {padTimeDigits(timeZoneLocals?.timeSeconds)}
+                                    </Text>
+                                </>
+                                )
+                            }
+                            {!settings.use24Hour && 
+                                <View style={styles.clockAmPmToggle}>
+                                    <Text style={styles.clockAmPm}>{displayIsPm ? 'pm' : 'am'}</Text> 
+                                    <Switch
+                                        value={displayIsPm}
+                                        onValueChange={handleAmPmToggle}
+                                        thumbColor={theme.accentPrimary}
+                                        trackColor={{ false: theme.bgSelected, true: theme.accentSecondary }}
+                                        />
+                                </View>
+                            }
+                            {overrideTime !== null &&
+                                <TouchableOpacity
+                                    style={styles.btnThemePrimary}
+                                    onPress={() => {
+                                        setOverrideTime(null);
+                                        setIsPmOverride(null);
+                                        setIsTimeSelectOpen(false);
+                                    }}
+                                >
+                                    <Text style={styles.primaryText}>Reset</Text>
+                                </TouchableOpacity>
+                            }
                         </View>
                         {/* <View style={styles.textSwapContainer}> */}
                             <View style={styles.clockTzRow}>
@@ -342,7 +342,6 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                 {/* {apiError && <Text style={styles.apiError}>{apiError}</Text>} */}
             </View>
         </LinearGradient>
-        </>
     );
 }
 
@@ -371,29 +370,31 @@ const makeStyles = (theme: ReturnType<typeof useTheme>) =>
             alignItems: 'center',
         },
         clockIana: {
-            fontSize: 11,
-            fontWeight: '500',
+            ...Typography.lgHeavy,
             letterSpacing: 0.88,        // RN absolute values for 'em': 11 * 0.08
             textTransform: 'uppercase',
             color: theme.fontColor,
-            marginBottom: 6,
+            marginBottom: 10,
             borderWidth: 1,
             borderColor: theme.fontColor, 
             // flex: 1,
         },
-        textDropdown: {
-            position: 'relative',
-            borderWidth: 1,
-            borderColor: theme.fontColor, 
+        tzText: {
+            ...Typography.md,
+            letterSpacing: 0.88,        // RN absolute values for 'em': 11 * 0.08
+            color: theme.fontColor,
+            // alignSelf: 'center',
+            // marginBottom: 6,
+            // borderWidth: 1,  
+            // borderColor: theme.fontColor, 
+            // flex: 1,
         },
-        numberUpDown: {
+        dropdownBtn: {
             position: 'relative',
-            flexDirection: 'row',
             borderWidth: 1,
             borderColor: theme.fontColor, 
-            paddingLeft: 5,
-            alignItems: 'center',
-            fontSize: 4,
+            alignSelf: 'stretch',
+            justifyContent: 'center',
         },
         svgIcon: {
             // width: 50,
@@ -409,10 +410,11 @@ const makeStyles = (theme: ReturnType<typeof useTheme>) =>
             borderRadius: 1,
             marginTop: 0,
             marginBottom: 16,
-            // opacity animated separately — see below
+            // opacity animated separately
         },
         clockDow: {
-            fontSize: 13,
+            ...Typography.base,
+            // fontSize: 13,
             letterSpacing: 0.78,        // 13 * 0.06
             textTransform: 'uppercase',
             marginBottom: 4,
@@ -421,10 +423,22 @@ const makeStyles = (theme: ReturnType<typeof useTheme>) =>
         clockDate: {
             fontSize: 22,
             fontWeight: '500',
-            marginBottom: 20,           // 1.25rem
+            color: theme.fontColor,
+            marginBottom: 20,
             flexDirection: 'row',
-            alignItems: 'stretch',
+            // alignItems: 'stretch',
+            // alignContent: 'center',
             gap: 8,
+        },
+        dateText: {
+            ...Typography.lgBook,
+            letterSpacing: 0.88,        // RN absolute values for 'em': 11 * 0.08
+            color: theme.fontColor,
+            // alignSelf: 'center',
+            // marginBottom: 6,
+            // borderWidth: 1,
+            // borderColor: theme.fontColor, 
+            // flex: 1,
         },
         clockDivider: {
             height: 2,
@@ -440,16 +454,19 @@ const makeStyles = (theme: ReturnType<typeof useTheme>) =>
             // cursor: pointer,
             },
         clockDigits: {
-            ...Typography.lg,
-            fontWeight: '500',          // fontVariantNumeric not supported — use a monospace font instead
+            ...Typography.xlHeavy,
+            color: theme.fontColor,
+            flexWrap: 'nowrap',
+            flex:1,
+            // fontVariantNumeric not supported — use a monospace font if needed
         },
         clockDigitsSs: {
-            // fontSize: 38,
-            ...Typography.lg,
-            fontWeight: '500',
-            marginTop: 'auto',
-            marginBottom: 'auto',
+            ...Typography.xlHeavy,
+            // marginTop: 'auto',
+            // marginBottom: 'auto',
             color: theme.fontColor,
+            flexWrap: 'nowrap',
+            flex:1,
         },
         clockAmPm: {
             fontSize: 13,
@@ -476,8 +493,7 @@ const makeStyles = (theme: ReturnType<typeof useTheme>) =>
             flexWrap: 'wrap',
         },
         clockTzBadge: {
-            fontSize: 12,
-            fontWeight: '500',
+            ...Typography.smHeavy,
             paddingVertical: 3,
             paddingHorizontal: 10,
             color: theme.fontColor,
@@ -487,7 +503,7 @@ const makeStyles = (theme: ReturnType<typeof useTheme>) =>
             backgroundColor: theme.bgSelected,
         },
         clockTzLong: {
-            fontSize: 13,
+            ...Typography.base,
             opacity: 0.6,
             flex: 1,
             color: theme.fontColor,
@@ -497,7 +513,6 @@ const makeStyles = (theme: ReturnType<typeof useTheme>) =>
             // height: 36,
             // paddingVertical: 12,
             // paddingHorizontal: 6,
-            fontSize: 13,
             cursor: 'pointer',
             backgroundColor: theme.fontColor,
             color: '#fff',
@@ -507,6 +522,7 @@ const makeStyles = (theme: ReturnType<typeof useTheme>) =>
         },
         primaryText: {
             color: 'white',
+            ...Typography.base,
             paddingVertical: 12,
             paddingHorizontal: 16,
             // margin:'auto',

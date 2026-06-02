@@ -6,7 +6,8 @@ import { Typography, TypographyKey } from '@/constants/theme';
 import type {OnChange} from "@/constants/types";
 
 interface NumberDropdownProps {
-  style: StyleProp<TextStyle> | undefined,
+  style?: StyleProp<TextStyle> | undefined,
+  fontStyle?: StyleProp<TextStyle> | undefined,
   display?: (input: number) => string | number;
   defaultOption: number | null | undefined;
   min: number;
@@ -14,7 +15,7 @@ interface NumberDropdownProps {
   onOptionSelect: OnChange<number>;
 }
 
-export default function NumberDropdown({ style, display = n => n, defaultOption, min, max, onOptionSelect }: NumberDropdownProps) {
+export default function NumberDropdown({ style, fontStyle, display = n => n, defaultOption, min, max, onOptionSelect }: NumberDropdownProps) {
   const btnRef = useRef<View>(null);
   const theme = useTheme();
   const styles = makeStyles(theme);
@@ -111,7 +112,7 @@ export default function NumberDropdown({ style, display = n => n, defaultOption,
         onPress={openDropdown}
       >
         <View style={styles.dropbtnInner}>
-           <Text style={styles.dropbtnText}>{display(selectedNumber)}</Text><Text style={styles.dropbtnArrow}>{isDropdownOpen ? '▲' : '▼'}</Text>
+           <Text style={[fontStyle]}>{display(selectedNumber)}</Text><Text style={styles.dropbtnArrow}>{isDropdownOpen ? '▲' : '▼'}</Text>
         </View>
       </TouchableOpacity>
 
@@ -174,7 +175,7 @@ const makeStyles = (theme: ReturnType<typeof useTheme>) =>
     dropbtn: {
       paddingVertical: 1,
       paddingHorizontal: 5,
-      minHeight:70,
+      // minHeight:70,
       maxWidth: "0000".length * 25,
       // borderWidth: 1,
       // borderColor: theme.fontColor,
@@ -189,7 +190,7 @@ const makeStyles = (theme: ReturnType<typeof useTheme>) =>
       flex: 1,
     },
     dropbtnText: {
-      ...Typography.lg,
+      // ...Typography.lg,
       color: theme.fontColor,
       // fontSize: 36,
     },
