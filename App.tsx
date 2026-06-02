@@ -1,5 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View } from 'react-native';
+import { useFonts } from 'expo-font';
 // import { SafeAreaView } from 'react-native-safe-area-context';
 import {ThemeProvider} from '@/contexts/theme-context';
 import {SettingsProvider} from '@/contexts/settings-context';
@@ -8,10 +9,16 @@ import timeZoneData from "@/constants/time-zone-names.json";
 const timeZoneNames = timeZoneData.timeZoneNames;
 
 export default function App() {
+    const [fontsLoaded] = useFonts({
+    'AvenirLTStdLight': require('./assets/fonts/AvenirLTStdLight.otf'),
+    'AvenirLTStdBook': require('./assets/fonts/AvenirLTStdBook.otf'),
+    'AvenirLTStdHeavy': require('./assets/fonts/AvenirLTStdHeavy.otf'),
+  });
+
+  if (!fontsLoaded) return null; // or a splash / loading screen
   return (
-    <>
-    {/* <SafeAreaView>
-          </SafeAreaView> */}
+    // <SafeAreaView>
+    //       </SafeAreaView>
       <SettingsProvider>
         <ThemeProvider>
           <View style={styles.container}>
@@ -20,7 +27,6 @@ export default function App() {
           </View>
         </ThemeProvider>
       </SettingsProvider>
-</>
   );
 }
 

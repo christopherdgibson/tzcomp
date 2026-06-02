@@ -77,42 +77,42 @@ export const GradientPalette = {
     blue: {
       gradientLeft: "#1a56d6", 
       gradientRight: "#e07b20",
-      name: "Default"
+      name: "Blue"
     },
     forest: {
       gradientLeft: "#1a6b3c", 
       gradientRight: "#c4962a",
-      name: "Default"
+      name: "Forest"
     },
     plum: {
       gradientLeft: "#5b2d8e", 
       gradientRight: "#c0392b",
-      name: "Default"
+      name: "Plum"
     },
     slate: {
       gradientLeft: "#2c4a6e", 
       gradientRight: "#e05c3a",
-      name: "Default"
+      name: "Slate"
     },
     purpleYellow: {
       gradientLeft: "#8c00b7", 
       gradientRight: "#fcff41",
-      name: "Default"
+      name: "PurpleYellow"
     },
     purpleGrey: {
       gradientLeft: "#6e0edc", 
       gradientRight: "#b7b7b7",
-      name: "Default"
+      name: "PurpleGrey"
     },
     blueRed: {
       gradientLeft: "#000097", 
       gradientRight: "#ff4747",
-      name: "Default"
+      name: "BlueRed"
     },
     blueLightBlue: {
       gradientLeft: "#000097", 
       gradientRight: "#82c1f2",
-      name: "Default"
+      name: "BlueLightBlue"
     },
 } as const;
 
@@ -141,13 +141,35 @@ export function buildTheme(baseBg: string, fontSelected: string, accentPrimary: 
   };
 }
 
-// theme.ts
+export const Fonts = {
+  light: 'AvenirLTStd-Light',
+  book: 'AvenirLTStd-Book',
+  heavy: 'AvenirLTStd-Heavy',
+} as const;
+
+export const FontFallback = Platform.select({
+  web: 'sans-serif',
+  default: 'normal',
+});
+
 export const Typography = {
-  sm:   { fontSize: 12 },
-  base: { fontSize: 14 },
-  md:   { fontSize: 16 },
-  lg:   { fontSize: 30 },
-  xl:   { fontSize: 38 },
+  sm:   { fontSize: 12, fontFamily: Fonts.light },
+  base: { fontSize: 14, fontFamily: Fonts.light },
+  md:   { fontSize: 16, fontFamily: Fonts.light },
+  lg:   { fontSize: 30, fontFamily: Fonts.light },
+  xl:   { fontSize: 38, fontFamily: Fonts.light },
+
+  smBook:   { fontSize: 12, fontFamily: Fonts.book },
+  baseBook: { fontSize: 14, fontFamily: Fonts.book },
+  mdBook:   { fontSize: 16, fontFamily: Fonts.book },
+  lgBook:   { fontSize: 30, fontFamily: Fonts.book },
+  xlBook:   { fontSize: 38, fontFamily: Fonts.book },
+
+  smHeavy:   { fontSize: 12, fontFamily: Fonts.heavy },
+  baseHeavy: { fontSize: 14, fontFamily: Fonts.heavy },
+  mdHeavy:   { fontSize: 16, fontFamily: Fonts.heavy },
+  lgHeavy:   { fontSize: 30, fontFamily: Fonts.heavy },
+  xlHeavy:   { fontSize: 38, fontFamily: Fonts.heavy },
 } as const;
 
 export const TextStyles = {
@@ -160,30 +182,30 @@ export type TypographyKey = keyof typeof Typography;
 
 export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
 
-export const Fonts = Platform.select({
-  ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
-    mono: 'ui-monospace',
-  },
-  default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
-    mono: 'monospace',
-  },
-  web: {
-    sans: 'var(--font-display)',
-    serif: 'var(--font-serif)',
-    rounded: 'var(--font-rounded)',
-    mono: 'var(--font-mono)',
-  },
-});
+// export const Fonts = Platform.select({
+//   ios: {
+//     /** iOS `UIFontDescriptorSystemDesignDefault` */
+//     sans: 'system-ui',
+//     /** iOS `UIFontDescriptorSystemDesignSerif` */
+//     serif: 'ui-serif',
+//     /** iOS `UIFontDescriptorSystemDesignRounded` */
+//     rounded: 'ui-rounded',
+//     /** iOS `UIFontDescriptorSystemDesignMonospaced` */
+//     mono: 'ui-monospace',
+//   },
+//   default: {
+//     sans: 'normal',
+//     serif: 'serif',
+//     rounded: 'normal',
+//     mono: 'monospace',
+//   },
+//   web: {
+//     sans: 'var(--font-display)',
+//     serif: 'var(--font-serif)',
+//     rounded: 'var(--font-rounded)',
+//     mono: 'var(--font-mono)',
+//   },
+// });
 
 export const Spacing = {
   half: 2,

@@ -20,7 +20,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.timezoneapp"
+      "package": "com.christopherdgibson.tzcomp"
     },
     "web": {
       "favicon": "./assets/favicon.png"
