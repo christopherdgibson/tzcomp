@@ -57,14 +57,11 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
     const displayIsPm = isPmOverride ?? isPm;
     useEffect(() => {
         // Confirm re-render for savings/debugging
-            console.log("useEffect compareZone: ", compareZone);
-
-        if (timeZoneDefault == null) {
-            handleZoneSelect("GMT");
-        }
+        console.log("useEffect compareZone: ", compareZone);
+        handleZoneSelect(timeZoneDefault ?? "GMT");
     }, []);
 
-    async function handleZoneSelect(timeZone: string | null | undefined) {
+    async function handleZoneSelect(timeZone: string) {
         if (timeZone == null) return;
         setApiError(null);
         try {
@@ -97,11 +94,16 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
         try {
             const utcParts = timeZoneParts(date, 'UTC', true);
             const tzParts = timeZoneParts(date, timeZone, true);
-
             const utcMs = Date.UTC(utcParts.year, utcParts.month - 1, utcParts.day, utcParts.hour, utcParts.minute, utcParts.second);
             const tzMs = Date.UTC(tzParts.year, tzParts.month - 1, tzParts.day, tzParts.hour, tzParts.minute, tzParts.second);
+           
+            const currentTimeZoneIANA = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            const currentTzParts = timeZoneParts(date, currentTimeZoneIANA, true);
+            const currentMs = Date.UTC(currentTzParts.year, currentTzParts.month - 1, currentTzParts.day, currentTzParts.hour, currentTzParts.minute, currentTzParts.second);
 
-            return (tzMs - utcMs) / 60000;
+            const utcOffset = (tzMs - utcMs) / 60000;
+            const currentOffset = (utcMs - currentMs) / 60000;
+            return utcOffset + currentOffset;
         } catch (e) {
             console.error('getTimezoneOffset failed for:', timeZone, e);
             return 0;
@@ -131,6 +133,7 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
 
     function refreshTimeZoneLocals(timeZone: string | null | undefined, utcOffset: number | null | undefined): TimeZoneLocalsProps | undefined {
         if (timeZone == null || utcOffset == null) return;
+        console.log('timeZone: ', timeZone, 'utcOffset: ', utcOffset);
         const baseTime = overrideTime ?? time;
         const localTime = new Date(baseTime.getTime() + utcOffset * 60000);
         if (localTime == null) return;
@@ -414,8 +417,7 @@ const makeStyles = (theme: ReturnType<typeof useTheme>) =>
         },
         clockDow: {
             ...Typography.base,
-            // fontSize: 13,
-            letterSpacing: 0.78,        // 13 * 0.06
+            letterSpacing: 0.78,
             textTransform: 'uppercase',
             marginBottom: 4,
             color: theme.fontColor,
@@ -448,7 +450,6 @@ const makeStyles = (theme: ReturnType<typeof useTheme>) =>
         clockTime: {
             alignItems: 'center',
             gap: 4,
-            // margin: 0 0 16,
             marginBottom: 16,
             flexDirection: 'row',
             // cursor: pointer,
@@ -456,17 +457,17 @@ const makeStyles = (theme: ReturnType<typeof useTheme>) =>
         clockDigits: {
             ...Typography.xlHeavy,
             color: theme.fontColor,
-            flexWrap: 'nowrap',
-            flex:1,
+            //flexWrap: 'nowrap',
+            // flex:1,
             // fontVariantNumeric not supported — use a monospace font if needed
         },
         clockDigitsSs: {
-            ...Typography.xlHeavy,
+            ...Typography.xlBook,
             // marginTop: 'auto',
             // marginBottom: 'auto',
             color: theme.fontColor,
-            flexWrap: 'nowrap',
-            flex:1,
+            // flexWrap: 'nowrap',
+            // flex:1,
         },
         clockAmPm: {
             fontSize: 13,
@@ -510,9 +511,6 @@ const makeStyles = (theme: ReturnType<typeof useTheme>) =>
         },
         btnThemePrimary: {
             borderRadius: 2,
-            // height: 36,
-            // paddingVertical: 12,
-            // paddingHorizontal: 6,
             cursor: 'pointer',
             backgroundColor: theme.fontColor,
             color: '#fff',
@@ -525,6 +523,5 @@ const makeStyles = (theme: ReturnType<typeof useTheme>) =>
             ...Typography.base,
             paddingVertical: 12,
             paddingHorizontal: 16,
-            // margin:'auto',
         },
     })
