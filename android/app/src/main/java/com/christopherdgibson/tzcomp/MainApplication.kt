@@ -1,4 +1,4 @@
-package com.anonymous.timezoneapp
+package com.christopherdgibson.tzcomp
 
 import android.app.Application
 import android.content.res.Configuration
