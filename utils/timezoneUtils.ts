@@ -53,3 +53,32 @@ export function getHoursAmPm(input: number | null | undefined): string {
         return "pm";
     }
 }
+
+export function timeZoneParts(date: Date, timeZone: string) {
+    const tzFormatter = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    year: 'numeric', month: 'numeric', day: 'numeric',
+    hour: 'numeric', minute: 'numeric', second: 'numeric',
+    hourCycle: 'h23'
+    });
+
+    return Object.fromEntries(
+        tzFormatter.formatToParts(date)
+            .filter(p => p.type !== 'literal')
+            .map(p => [p.type, parseInt(p.value)])
+    );
+}
+
+export function partsToUTC(
+    parts: ReturnType<typeof timeZoneParts>,
+    overrides: { year?: number; month?: number; day?: number; hour?: number; minute?: number; second?: number } = {}
+) {
+    return Date.UTC(
+        overrides.year   ?? parts.year,
+        (overrides.month ?? parts.month) - 1,
+        overrides.day    ?? parts.day,
+        overrides.hour   ?? parts.hour,
+        overrides.minute ?? parts.minute,
+        overrides.second ?? parts.second,
+    );
+}

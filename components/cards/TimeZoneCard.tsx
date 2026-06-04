@@ -14,7 +14,7 @@ import TimeZoneDropdown from "@/components/dropdowns/TimeZoneDropdown";
 import NumberDropdown from "@/components/dropdowns/NumberDropdown";
 import NumberUpDown from "@/components/dropdowns/NumberUpDown";
 import {GradientIcon} from "@/components/GradientIcon";
-import {getHours12h, getHours24h, getMonthShort, padTimeDigits} from "@/utils/timezoneUtils";
+import {getHours12h, getHours24h, getMonthShort, padTimeDigits, partsToUTC, timeZoneParts} from "@/utils/timezoneUtils";
 
 interface TimeZoneLocalsProps {
   timeZoneName: string;
@@ -51,10 +51,15 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
     const [compareZone, setCompareZone] = useState<CompareZoneProps | null>({timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, utcOffset: 0});
     const [apiError, setApiError] = useState<string | null>(null);
     const [isTimeSelectOpen, setIsTimeSelectOpen] = useState<boolean>(false);
+    
+    const baseTime = overrideTime ?? time;
+    const adjustment = (compareZone?.utcOffset ?? 0) * 60000;
     const timeZoneLocals = refreshTimeZoneLocals(compareZone?.timeZone, compareZone?.utcOffset);
-    const isPm = (timeZoneLocals?.timeHours ?? 0) >= 12;
+    const currentHour = timeZoneLocals?.timeHours ?? 0;
+    const isPm = currentHour >= 12;
     const [isPmOverride, setIsPmOverride] = useState<boolean | null>(null);
     const displayIsPm = isPmOverride ?? isPm;
+
     useEffect(() => {
         // Confirm re-render for savings/debugging
         console.log("useEffect compareZone: ", compareZone);
@@ -89,43 +94,29 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
             setOverrideTime(new Date(new Date(timeZoneLocals?.localTime ?? time).setHours(hoursOverride) - adjustment));
         }
     }
-    
+
     function getTimezoneOffset(timeZone: string, date: Date = new Date()): number {
         try {
-            const utcParts = timeZoneParts(date, 'UTC', true);
-            const tzParts = timeZoneParts(date, timeZone, true);
+            const utcParts = timeZoneParts(date, 'UTC');
+            const tzParts = timeZoneParts(date, timeZone);
             const utcMs = Date.UTC(utcParts.year, utcParts.month - 1, utcParts.day, utcParts.hour, utcParts.minute, utcParts.second);
             const tzMs = Date.UTC(tzParts.year, tzParts.month - 1, tzParts.day, tzParts.hour, tzParts.minute, tzParts.second);
            
             const currentTimeZoneIANA = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            const currentTzParts = timeZoneParts(date, currentTimeZoneIANA, true);
+            const currentTzParts = timeZoneParts(date, currentTimeZoneIANA);
             const currentMs = Date.UTC(currentTzParts.year, currentTzParts.month - 1, currentTzParts.day, currentTzParts.hour, currentTzParts.minute, currentTzParts.second);
 
             const utcOffset = (tzMs - utcMs) / 60000;
-            const currentOffset = (utcMs - currentMs) / 60000;
-            return utcOffset + currentOffset;
+            // const currentOffset = (utcMs - currentMs) / 60000;
+            // return utcOffset + currentOffset;
+            return utcOffset;
         } catch (e) {
             console.error('getTimezoneOffset failed for:', timeZone, e);
             return 0;
         }
     }
 
-    function timeZoneParts(date: Date, timeZone: string, use24hour: boolean) {
-        const tzFormatter = new Intl.DateTimeFormat('en-US', {
-        timeZone,
-        year: 'numeric', month: 'numeric', day: 'numeric',
-        hour: 'numeric', minute: 'numeric', second: 'numeric',
-        hour12: !use24hour
-        });
-
-        return Object.fromEntries(
-            tzFormatter.formatToParts(date)
-                .filter(p => p.type !== 'literal')
-                .map(p => [p.type, parseInt(p.value)])
-        );
-    }
-
-    function getDaysInMonth(time: Date): number {
+    function getDaysInMonth(time: Date): number { // todo: use local time for correct days for each timeZone
         const firstDate = new Date(time.getFullYear(), time.getMonth(), 1);
         const lastDate = new Date(time.getFullYear(), time.getMonth() + 1, 0);
         return lastDate.getDate() - firstDate.getDate() + 1;
@@ -133,12 +124,12 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
 
     function refreshTimeZoneLocals(timeZone: string | null | undefined, utcOffset: number | null | undefined): TimeZoneLocalsProps | undefined {
         if (timeZone == null || utcOffset == null) return;
-        console.log('timeZone: ', timeZone, 'utcOffset: ', utcOffset);
-        const baseTime = overrideTime ?? time;
+        console.log('refreshTimeZoneLocals timeZone: ', timeZone, 'utcOffset: ', utcOffset);
         const localTime = new Date(baseTime.getTime() + utcOffset * 60000);
         if (localTime == null) return;
 
-        const parts = timeZoneParts(baseTime, timeZone, true);
+        const parts = timeZoneParts(baseTime, timeZone);
+        console.log('refreshTimeZoneLocals parts: ', parts);
 
         return {
             timeZoneName: timeZone,
@@ -210,8 +201,9 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                                     max={getDaysInMonth(timeZoneLocals?.localTime ?? time)}
                                     onOptionSelect={
                                         (day) => {
-                                            const adjustment = (compareZone?.utcOffset ?? 0) * 60000;
-                                            setOverrideTime(new Date(new Date(timeZoneLocals?.localTime ?? time).setDate(day) - adjustment));
+                                            const tzParts = timeZoneParts(baseTime, timeZoneLocals?.timeZoneName ?? "UTC");
+                                            const utcMs = partsToUTC(tzParts, {day: day}) - adjustment;
+                                            setOverrideTime(new Date(utcMs));
                                         }
                                     }
                                 />
@@ -223,9 +215,10 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                                 min={0}
                                 max={11}
                                 onOptionSelect={
-                                    (month) => { 
-                                        const adjustment = (compareZone?.utcOffset ?? 0) * 60000;
-                                        setOverrideTime(new Date(new Date(timeZoneLocals?.localTime ?? time).setMonth(month) - adjustment));
+                                    (month) => {
+                                        const tzParts = timeZoneParts(baseTime, timeZoneLocals?.timeZoneName ?? "UTC");
+                                        const utcMs = partsToUTC(tzParts, {month: month}) - adjustment;
+                                        setOverrideTime(new Date(utcMs));
                                     }
                                 }
                             />
@@ -240,8 +233,9 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                                     max={getDaysInMonth(timeZoneLocals?.localTime ?? time)}
                                     onOptionSelect={
                                         (day) => {
-                                            const adjustment = (compareZone?.utcOffset ?? 0) * 60000;
-                                            setOverrideTime(new Date(new Date(timeZoneLocals?.localTime ?? time).setDate(day) - adjustment));
+                                            const tzParts = timeZoneParts(baseTime, timeZoneLocals?.timeZoneName ?? "UTC");
+                                            const utcMs = partsToUTC(tzParts, {day: day}) - adjustment;
+                                            setOverrideTime(new Date(utcMs));
                                         }
                                     }
                                 />
@@ -250,9 +244,10 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                                 style={styles.dropdownBtn}
                                 fontStyle={styles.dateText}
                                 input={timeZoneLocals?.timeYear} onChange={
-                                    (year) => { 
-                                        const adjustment = (compareZone?.utcOffset ?? 0) * 60000;
-                                        setOverrideTime(new Date(new Date(timeZoneLocals?.localTime ?? time).setFullYear(year) - adjustment));
+                                    (year) => {
+                                        const tzParts = timeZoneParts(baseTime, timeZoneLocals?.timeZoneName ?? "UTC");
+                                        const utcMs = partsToUTC(tzParts, {year: year}) - adjustment;
+                                        setOverrideTime(new Date(utcMs));
                                     }
                                 }
                             />
@@ -273,8 +268,13 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                                 max={settings.use24Hour ? 23 : 12}
                                 onOptionSelect={
                                     (hours) => {
-                                        const adjustment = (compareZone?.utcOffset ?? 0) * 60000;
-                                        setOverrideTime(new Date(new Date(timeZoneLocals?.localTime ?? time).setHours(settings.use24Hour ? hours : getHours24h(hours, displayIsPm)) - adjustment));
+                                        const hours24 = settings.use24Hour ? hours : getHours24h(hours, displayIsPm);
+                                        const tzParts = timeZoneParts(baseTime, timeZoneLocals?.timeZoneName ?? "UTC");
+                                        console.log('hour dropdown hourSelected: ', hours);
+                                        console.log('hour dropdown tzParts: ', tzParts);
+                                        const utcMs = partsToUTC(tzParts, {hour: hours24}) - adjustment;
+                                        console.log('utc NewDate: ', new Date(utcMs));
+                                        setOverrideTime(new Date(utcMs));
                                     }
                                 }
                             />
@@ -287,9 +287,10 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                                 min={0}
                                 max={59}
                                 onOptionSelect={
-                                    (minutes) => {
-                                        const adjustment = (compareZone?.utcOffset ?? 0) * 60000;
-                                        setOverrideTime(new Date(new Date(timeZoneLocals?.localTime ?? time).setMinutes(minutes) - adjustment));
+                                    (minute) => {
+                                        const tzParts = timeZoneParts(baseTime, timeZoneLocals?.timeZoneName ?? "UTC");
+                                        const utcMs = partsToUTC(tzParts, {minute: minute}) - adjustment;
+                                        setOverrideTime(new Date(utcMs));
                                     }
                                 }
                             />
