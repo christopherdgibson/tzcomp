@@ -50,15 +50,13 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
     const styles = makeStyles(theme);
     const [compareZone, setCompareZone] = useState<CompareZoneProps | null>({timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone, utcOffset: 0});
     const [apiError, setApiError] = useState<string | null>(null);
-    const [isTimeSelectOpen, setIsTimeSelectOpen] = useState<boolean>(false);
+    // const [isTimeSelectOpen, setIsTimeSelectOpen] = useState<boolean>(false);
     
     const baseTime = overrideTime ?? time;
     const adjustment = (compareZone?.utcOffset ?? 0) * 60000;
     const timeZoneLocals = refreshTimeZoneLocals(compareZone?.timeZone, compareZone?.utcOffset);
     const currentHour = timeZoneLocals?.timeHours ?? 0;
     const isPm = currentHour >= 12;
-    const [isPmOverride, setIsPmOverride] = useState<boolean | null>(null);
-    const displayIsPm = isPmOverride ?? isPm;
 
     useEffect(() => {
         // Confirm re-render for savings/debugging
@@ -82,17 +80,9 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
     }
 
     function handleAmPmToggle() {
-        let hoursOverride;
-        if (timeZoneLocals) {
-            hoursOverride = displayIsPm
-            ? timeZoneLocals?.timeHours - 12
-            : timeZoneLocals?.timeHours + 12;
-        }
-        setIsPmOverride(prev => !(prev ?? isPm));
-        const adjustment = (compareZone?.utcOffset ?? 0) * 60000;
-        if (hoursOverride != null) {
-            setOverrideTime(new Date(new Date(timeZoneLocals?.localTime ?? time).setHours(hoursOverride) - adjustment));
-        }
+        const deltaMs = isPm ? -12 * 3600000 : +12 * 3600000;
+        const newTime = new Date(baseTime.getTime() + deltaMs);
+        setOverrideTime(newTime);
     }
 
     function getTimezoneOffset(timeZone: string, date: Date = new Date()): number {
@@ -268,7 +258,7 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                                 max={settings.use24Hour ? 23 : 12}
                                 onOptionSelect={
                                     (hours) => {
-                                        const hours24 = settings.use24Hour ? hours : getHours24h(hours, displayIsPm);
+                                        const hours24 = settings.use24Hour ? hours : getHours24h(hours, isPm);
                                         const tzParts = timeZoneParts(baseTime, timeZoneLocals?.timeZoneName ?? "UTC");
                                         console.log('hour dropdown hourSelected: ', hours);
                                         console.log('hour dropdown tzParts: ', tzParts);
@@ -305,9 +295,9 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                             }
                             {!settings.use24Hour && 
                                 <View style={styles.clockAmPmToggle}>
-                                    <Text style={styles.clockAmPm}>{displayIsPm ? 'pm' : 'am'}</Text> 
+                                    <Text style={styles.clockAmPm}>{isPm ? 'pm' : 'am'}</Text> 
                                     <Switch
-                                        value={displayIsPm}
+                                        value={isPm}
                                         onValueChange={handleAmPmToggle}
                                         thumbColor={theme.accentPrimary}
                                         trackColor={{ false: theme.bgSelected, true: theme.accentSecondary }}
@@ -319,8 +309,7 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                                     style={styles.btnThemePrimary}
                                     onPress={() => {
                                         setOverrideTime(null);
-                                        setIsPmOverride(null);
-                                        setIsTimeSelectOpen(false);
+                                        //setIsTimeSelectOpen(false);
                                     }}
                                 >
                                     <Text style={styles.primaryText}>Reset</Text>
