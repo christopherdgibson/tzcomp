@@ -89,27 +89,20 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
         try {
             const utcParts = timeZoneParts(date, 'UTC');
             const tzParts = timeZoneParts(date, timeZone);
-            const utcMs = Date.UTC(utcParts.year, utcParts.month - 1, utcParts.day, utcParts.hour, utcParts.minute, utcParts.second);
-            const tzMs = Date.UTC(tzParts.year, tzParts.month - 1, tzParts.day, tzParts.hour, tzParts.minute, tzParts.second);
-           
-            const currentTimeZoneIANA = Intl.DateTimeFormat().resolvedOptions().timeZone;
-            const currentTzParts = timeZoneParts(date, currentTimeZoneIANA);
-            const currentMs = Date.UTC(currentTzParts.year, currentTzParts.month - 1, currentTzParts.day, currentTzParts.hour, currentTzParts.minute, currentTzParts.second);
+            const utcMs = partsToUTC(utcParts);
+            const tzMs = partsToUTC(tzParts);
 
-            const utcOffset = (tzMs - utcMs) / 60000;
-            // const currentOffset = (utcMs - currentMs) / 60000;
-            // return utcOffset + currentOffset;
-            return utcOffset;
+            return (tzMs - utcMs) / 60000;
         } catch (e) {
             console.error('getTimezoneOffset failed for:', timeZone, e);
             return 0;
         }
     }
 
-    function getDaysInMonth(time: Date): number { // todo: use local time for correct days for each timeZone
-        const firstDate = new Date(time.getFullYear(), time.getMonth(), 1);
-        const lastDate = new Date(time.getFullYear(), time.getMonth() + 1, 0);
-        return lastDate.getDate() - firstDate.getDate() + 1;
+    function getDaysInMonth(year: number | undefined, month: number | undefined): number {
+        if (year == null || month == null) return 31;
+        // month here is 1-based (Intl convention), so month gets the next month, day 0 = last day of current month
+        return new Date(year, month, 0).getDate();
     }
 
     function refreshTimeZoneLocals(timeZone: string | null | undefined, utcOffset: number | null | undefined): TimeZoneLocalsProps | undefined {
@@ -132,7 +125,7 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                 timeZone,
             }).format(baseTime),
             timeDate: parts.day,
-            timeMonth: parts.month - 1,  // Intl months are 1-based, JS months are 0-based
+            timeMonth: parts.month,
             timeYear: parts.year,
             // timeDow: localTime.toLocaleString("default", { weekday: "long" }),
             timeDow: new Intl.DateTimeFormat("default", {
@@ -188,7 +181,7 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                                     defaultOption={timeZoneLocals?.timeDate}
                                     display={padTimeDigits}
                                     min={1}
-                                    max={getDaysInMonth(timeZoneLocals?.localTime ?? time)}
+                                    max={getDaysInMonth(timeZoneLocals?.timeYear, timeZoneLocals?.timeMonth)}
                                     onOptionSelect={
                                         (day) => {
                                             const tzParts = timeZoneParts(baseTime, timeZoneLocals?.timeZoneName ?? "UTC");
@@ -202,8 +195,8 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                                 fontStyle={styles.dateText}
                                 defaultOption={timeZoneLocals?.timeMonth}
                                 display={getMonthShort}
-                                min={0}
-                                max={11}
+                                min={1}
+                                max={12}
                                 onOptionSelect={
                                     (month) => {
                                         const tzParts = timeZoneParts(baseTime, timeZoneLocals?.timeZoneName ?? "UTC");
@@ -220,7 +213,7 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                                     defaultOption={timeZoneLocals?.timeDate}
                                     display={padTimeDigits}
                                     min={1}
-                                    max={getDaysInMonth(timeZoneLocals?.localTime ?? time)}
+                                    max={getDaysInMonth(timeZoneLocals?.timeYear, timeZoneLocals?.timeMonth)}
                                     onOptionSelect={
                                         (day) => {
                                             const tzParts = timeZoneParts(baseTime, timeZoneLocals?.timeZoneName ?? "UTC");

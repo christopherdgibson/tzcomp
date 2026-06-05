@@ -17,7 +17,7 @@ export function getMonthShort (input: number | null | undefined): string {
     if (input == null) {
         return "";
     }
-    return new Date(2000, input).toLocaleString("default", { month: "short" });
+    return new Date(2000, input - 1).toLocaleString("default", { month: "short" });
 }
 
 export function getHours12h(input: number): number {
