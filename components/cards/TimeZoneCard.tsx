@@ -80,8 +80,8 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
         try {
             const utcOffset = getTimezoneOffset(timeZone, date);
             if (isNaN(utcOffset)) {
-            setApiError("Invalid timezone offset");
-            return;
+                setApiError("Invalid timezone offset");
+                return;
             }
             setCompareZone({ timeZone, utcOffset });
         } catch (e) {
@@ -166,8 +166,9 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                                 dropdownOptions={timeZoneNames}
                                 onOptionSelect={(timeZone: string) => handleZoneSelect(timeZone)}
                             />
-                            <MaterialCommunityIcons name="timetable"  style={styles.textIcon} colors={theme.dividerBarGrad}/>                           
+                            <MaterialCommunityIcons name="timetable" style={styles.textIcon} colors={theme.dividerBarGrad}/>                           
                         </View>
+                        {apiError !== null && <Text style={[styles.apiError]}>{apiError}</Text>}
                         <LinearGradient
                             colors={theme.dividerBarGrad}
                             start={{ x: 0, y: 0 }}
@@ -279,7 +280,7 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                                         // console.log('hour dropdown hourSelected: ', hours);
                                         // console.log('hour dropdown tzParts: ', tzParts);
 
-                                        //console.log('utc NewDate: ', new Date(utcMs));
+                                        // console.log('utc NewDate: ', new Date(utcMs));
                                     }
                                 }
                             />
@@ -376,6 +377,13 @@ const makeStyles = (theme: ReturnType<typeof useTheme>) =>
             flexDirection: 'row',
             justifyContent: 'space-between',
             alignItems: 'center',
+        },
+        apiError: {
+            display: 'flex',
+            color: 'red',
+            flexWrap: 'wrap',
+            flex:0,
+            marginBottom: 10,
         },
         clockIana: {
             ...Typography.lgHeavy,
