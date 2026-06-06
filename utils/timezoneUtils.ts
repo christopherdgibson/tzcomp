@@ -20,6 +20,12 @@ export function getMonthShort (input: number | null | undefined): string {
     return new Date(2000, input - 1).toLocaleString("default", { month: "short" });
 }
 
+export function getDaysInMonth(year: number | undefined, month: number | undefined): number {
+    if (year == null || month == null) return 31;
+    // month here is 1-based (Intl convention), so month gets the next month, day 0 = last day of current month
+    return new Date(year, month, 0).getDate();
+}
+
 export function getHours12h(input: number): number {
     if (input ===0) {
         return 12;
@@ -54,7 +60,7 @@ export function getHoursAmPm(input: number | null | undefined): string {
     }
 }
 
-export function timeZoneParts(date: Date, timeZone: string) {
+export function timeZoneParts(date: Date, timeZone: string = "UTC") {
     const tzFormatter = new Intl.DateTimeFormat('en-US', {
     timeZone,
     year: 'numeric', month: 'numeric', day: 'numeric',

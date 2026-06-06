@@ -127,6 +127,7 @@ export default function NumberDropdown({ style, fontStyle, display = n => n, def
               style={styles.dropdownSearch}
               value={search}
               onChangeText={setSearch}
+              keyboardType="numeric"
               placeholder="Search..."
               placeholderTextColor={theme.fontSubtle}
               autoFocus
