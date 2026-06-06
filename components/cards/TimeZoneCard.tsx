@@ -186,6 +186,7 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                                     fontStyle={styles.dateText}
                                     defaultOption={timeZoneLocals?.timeDate}
                                     display={padTimeDigits}
+                                    keyboardType={"numeric"}
                                     min={1}
                                     max={getDaysInMonth(timeZoneLocals?.timeYear, timeZoneLocals?.timeMonth)}
                                     onOptionSelect={
@@ -218,6 +219,7 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                                     fontStyle={styles.dateText}
                                     defaultOption={timeZoneLocals?.timeDate}
                                     display={padTimeDigits}
+                                    keyboardType={"numeric"}
                                     min={1}
                                     max={getDaysInMonth(timeZoneLocals?.timeYear, timeZoneLocals?.timeMonth)}
                                     onOptionSelect={
@@ -253,6 +255,7 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                                 fontStyle={styles.clockDigits}
                                 defaultOption={settings.use24Hour ? timeZoneLocals?.timeHours : getHours12h(timeZoneLocals?.timeHours ?? 0)}
                                 display={settings.use24Hour ? padTimeDigits : getHours12h}
+                                keyboardType={"numeric"}
                                 min={settings.use24Hour ? 0 : 1}
                                 max={settings.use24Hour ? 23 : 12}
                                 onOptionSelect={
@@ -290,6 +293,7 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                                 fontStyle={styles.clockDigits}
                                 defaultOption={timeZoneLocals?.timeMinutes}
                                 display={padTimeDigits}
+                                keyboardType={"numeric"}
                                 min={0}
                                 max={59}
                                 onOptionSelect={

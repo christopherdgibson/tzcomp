@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Keyboard, Modal, ScrollView, StyleProp, StyleSheet, Text, TextInput, TextStyle, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '@/hooks/use-theme';
 import { Typography, TypographyKey } from '@/constants/theme';
+import {KeyboardTypeOptions} from "react-native";
 
 import type {OnChange} from "@/constants/types";
 
@@ -9,13 +10,14 @@ interface NumberDropdownProps {
   style?: StyleProp<TextStyle> | undefined,
   fontStyle?: StyleProp<TextStyle> | undefined,
   display?: (input: number) => string | number;
+  keyboardType?: KeyboardTypeOptions;
   defaultOption: number | null | undefined;
   min: number;
   max: number;
   onOptionSelect: OnChange<number>;
 }
 
-export default function NumberDropdown({ style, fontStyle, display = n => n, defaultOption, min, max, onOptionSelect }: NumberDropdownProps) {
+export default function NumberDropdown({ style, fontStyle, display = n => n, keyboardType, defaultOption, min, max, onOptionSelect }: NumberDropdownProps) {
   const btnRef = useRef<View>(null);
   const theme = useTheme();
   const styles = makeStyles(theme);
@@ -45,7 +47,8 @@ export default function NumberDropdown({ style, fontStyle, display = n => n, def
   // }, [isDropdownOpen]);
 
   const filteredOptions = dropdownOptions.filter(option =>
-    option.toString().includes(search.toLowerCase())
+    option.toString().toLowerCase().includes(search.toLowerCase())
+    ||display(option).toString().toLowerCase().includes(search.toLowerCase())
   );
 
 //   const handleInputChange = (text: string, display: (input: number) => string | number = n => n) => {
@@ -127,7 +130,7 @@ export default function NumberDropdown({ style, fontStyle, display = n => n, def
               style={styles.dropdownSearch}
               value={search}
               onChangeText={setSearch}
-              keyboardType="numeric"
+              keyboardType={keyboardType}
               placeholder="Search..."
               placeholderTextColor={theme.fontSubtle}
               autoFocus
