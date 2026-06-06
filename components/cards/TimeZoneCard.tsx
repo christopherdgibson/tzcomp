@@ -56,19 +56,28 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
     const adjustment = (compareZone?.utcOffset ?? 0) * 60000;
     const timeZoneLocals = refreshTimeZoneLocals(compareZone?.timeZone, compareZone?.utcOffset);
     const currentHour = timeZoneLocals?.timeHours ?? 0;
+    const currentTimeZone = timeZoneLocals?.timeZoneShort ?? "GMT";
     const isPm = currentHour >= 12;
 
+    // Handle initial mount
     useEffect(() => {
         // Confirm re-render for savings/debugging
-        console.log("useEffect compareZone: ", compareZone);
+        console.log("useEffect render compareZone: ", compareZone);
         handleZoneSelect(timeZoneDefault ?? "GMT");
     }, []);
 
-    async function handleZoneSelect(timeZone: string) {
+    // Handle changes in time zone name (e.g., standard/daylight)
+    useEffect(() => {
+        console.log("useEffect currentTimeZone changed before.", currentTimeZone, "uctOffset: ", compareZone?.utcOffset);
+        handleZoneSelect(compareZone?.timeZone ?? "GMT", baseTime);
+        console.log("useEffect currentTimeZone changed.", currentTimeZone, "uctOffset: ", compareZone?.utcOffset);
+    }, [currentTimeZone]);
+
+    async function handleZoneSelect(timeZone: string, date?: Date) {
         if (timeZone == null) return;
         setApiError(null);
         try {
-            const utcOffset = getTimezoneOffset(timeZone);
+            const utcOffset = getTimezoneOffset(timeZone, date);
             if (isNaN(utcOffset)) {
             setApiError("Invalid timezone offset");
             return;
@@ -91,6 +100,9 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
             const tzParts = timeZoneParts(date, timeZone);
             const utcMs = partsToUTC(utcParts);
             const tzMs = partsToUTC(tzParts);
+            console.log("getTimezoneOffset utcParts.", utcParts);
+            console.log("getTimezoneOffset tzParts.", tzParts);
+
 
             return (tzMs - utcMs) / 60000;
         } catch (e) {
@@ -112,7 +124,7 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
         if (localTime == null) return;
 
         const parts = timeZoneParts(baseTime, timeZone);
-        console.log('refreshTimeZoneLocals parts: ', parts);
+        //console.log('refreshTimeZoneLocals parts: ', parts);
 
         return {
             timeZoneName: timeZone,
@@ -200,6 +212,7 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                                 onOptionSelect={
                                     (month) => {
                                         const tzParts = timeZoneParts(baseTime, timeZoneLocals?.timeZoneName ?? "UTC");
+                                        //console.log("month selected tzParts: ", tzParts);
                                         const utcMs = partsToUTC(tzParts, {month: month}) - adjustment;
                                         setOverrideTime(new Date(utcMs));
                                     }
@@ -229,6 +242,7 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                                 input={timeZoneLocals?.timeYear} onChange={
                                     (year) => {
                                         const tzParts = timeZoneParts(baseTime, timeZoneLocals?.timeZoneName ?? "UTC");
+                                        //console.log("year selected tzParts: ", tzParts);
                                         const utcMs = partsToUTC(tzParts, {year: year}) - adjustment;
                                         setOverrideTime(new Date(utcMs));
                                     }
@@ -251,13 +265,30 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                                 max={settings.use24Hour ? 23 : 12}
                                 onOptionSelect={
                                     (hours) => {
+                                        // const hours24 = settings.use24Hour ? hours : getHours24h(hours, isPm);
+                                        // const tzParts = timeZoneParts(baseTime, timeZoneLocals?.timeZoneName ?? "UTC");
+                                        // const newUtcMs = partsToUTC(tzParts, { hour: hours24 }) - adjustment;
+                                        // const newTime = new Date(newUtcMs);
+                                        
+                                        // // Recalculate offset for the new time to handle DST transitions
+                                        // const freshOffset = getTimezoneOffset(compareZone?.timeZone ?? "GMT", newTime);
+                                        // const freshAdjustment = freshOffset * 60000;
+                                        // const correctedMs = partsToUTC(tzParts, { hour: hours24 }) - freshAdjustment;
+                                        
+                                        // setOverrideTime(new Date(correctedMs));
+                                        // console.log('utc NewDate: ', new Date(correctedMs));
+
                                         const hours24 = settings.use24Hour ? hours : getHours24h(hours, isPm);
                                         const tzParts = timeZoneParts(baseTime, timeZoneLocals?.timeZoneName ?? "UTC");
+                                      
+                                        const utcMs = partsToUTC(tzParts, {hour: hours24}) - adjustment;
+                                       
+                                        setOverrideTime(new Date(utcMs));
+
                                         console.log('hour dropdown hourSelected: ', hours);
                                         console.log('hour dropdown tzParts: ', tzParts);
-                                        const utcMs = partsToUTC(tzParts, {hour: hours24}) - adjustment;
-                                        console.log('utc NewDate: ', new Date(utcMs));
-                                        setOverrideTime(new Date(utcMs));
+
+                                        //console.log('utc NewDate: ', new Date(utcMs));
                                     }
                                 }
                             />
