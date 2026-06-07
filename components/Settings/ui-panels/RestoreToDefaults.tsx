@@ -1,10 +1,8 @@
-import { useEffect, useState } from "react";
-import { Modal, StyleProp, StyleSheet, Text, TextStyle, TouchableOpacity, View } from 'react-native';
+import { useState } from "react";
+import { StyleProp, StyleSheet, Text, TextStyle, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '@/hooks/use-theme';
-import { PresetKeys, Presets, Typography } from '@/constants/theme';
+import { Typography } from '@/constants/theme';
 import { useThemeContext } from '@/contexts/theme-context';
-
-import {toPascalCase} from '@/utils/timezoneUtils';
 
 interface RestoreToDefaultsProps {
     style?: StyleProp<TextStyle> | undefined,
@@ -15,45 +13,47 @@ export default function RestoreToDefaults({style}: RestoreToDefaultsProps) {
   const { preset, setPreset } = useThemeContext();
   const theme = useTheme();
   const styles = makeStyles(theme);
+  const isDefault = preset === 'default';
 
   return (
     <View style={[styles.btnGrid]}>
       <TouchableOpacity
-        onPress={() => setIsModalOpen(true)}
-        style={[styles.btnDefault, styles.btnPrimary]}
+        onPress={() => {
+          if (isDefault) return;
+          setIsModalOpen(true);
+        }
+      }
+        style={[styles.btnDefault, isDefault ? styles.btnNull : styles.btnPrimary]}
       >
-          <Text style={[styles.btnText, styles.btnPrimaryText]}>Restore to defaults</Text>
+        {isDefault
+          ? <Text style={[styles.btnText, styles.btnSecondaryText]}>Defaults currently set</Text>
+          : <Text style={[styles.btnText, styles.btnPrimaryText]}>Restore to defaults</Text>
+        }
       </TouchableOpacity>
-
-      <Modal visible={isModalOpen} transparent animationType="fade">
-        <TouchableOpacity
-          style={[StyleSheet.absoluteFill]}
-          onPress={() => setIsModalOpen(false)}
-          activeOpacity={1}
-        />
-          <View style={styles.modal}>
-            <Text style={styles.modalText}>Are you sure you want to restore the default colors?</Text>
-            <View style={styles.btnContainer}>
-              <TouchableOpacity
-                onPress={() => {
-                  setPreset('default');
-                  setIsModalOpen(false);
-                }}
-                style={[style, styles.btnDefault, styles.btnPrimary]}
-              >
-                <Text style={[styles.btnText, styles.btnPrimaryText]}>Yes, restore</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => {
-                  setIsModalOpen(false);
-                }}
-                style={[style, styles.btnDefault]}
-              >
-                <Text style={[styles.btnText, styles.btnSecondaryText]}>Cancel</Text>
-              </TouchableOpacity>
-            </View>
+      {isModalOpen &&
+        <View style={styles.confirm}>
+          <Text style={styles.modalText}>Are you sure you want to restore the default colors?</Text>
+          <View style={styles.btnContainer}>
+            <TouchableOpacity
+              onPress={() => {
+                setPreset('default');
+                setIsModalOpen(false);
+              }}
+              style={[style, styles.btnDefault, styles.btnPrimary]}
+            >
+              <Text style={[styles.btnText, styles.btnPrimaryText]}>Yes, restore</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                setIsModalOpen(false);
+              }}
+              style={[style, styles.btnDefault, styles.btnSecondary]}
+            >
+              <Text style={[styles.btnText, styles.btnSecondaryText]}>Cancel</Text>
+            </TouchableOpacity>
           </View>
-      </Modal>
+        </View>
+      }
     </View>
   );
 }
@@ -65,10 +65,11 @@ const makeStyles = (theme: ReturnType<typeof useTheme>) =>
       backgroundColor: theme.backgroundSelected,
       padding: 10,
     },
+    confirm: {
+      padding: 10,
+    },
     modalText: {
-
-      fontSize: 12,
-      // ...Typography.md,
+      ...Typography.sm,
     },
     btnContainer: {
       flexDirection: 'row',
@@ -89,7 +90,6 @@ const makeStyles = (theme: ReturnType<typeof useTheme>) =>
     btnDefault: {
       borderWidth: 1,
       borderRadius: 0,
-      fontSize: 13,
       minWidth: 90,
       cursor: 'pointer',
       alignItems: 'center',
@@ -102,15 +102,23 @@ const makeStyles = (theme: ReturnType<typeof useTheme>) =>
       flex: 1,
     },
     btnPrimary: {
-      backgroundColor: '#007cba',
-      borderColor: '#007cba',
+      backgroundColor: theme.accentPrimary,
+      borderColor: theme.accentPrimary,
+      // backgroundColor: '#007cba',
+      // borderColor: '#007cba',
       color: '#fff',
     },
     btnSecondary: {
       backgroundColor: 'transparent',
       borderColor: theme.fontColor,
     },
+    btnNull: {
+      backgroundColor: theme.backgroundSelected,
+      // backgroundColor: 'transparent',
+      borderColor: 'transparent',
+    },
     btnText: {
+      ...Typography.md,
       paddingVertical: 12,
       paddingHorizontal: 6,
     },

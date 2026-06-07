@@ -8,6 +8,23 @@ export default function SettingsPanel({ style }: { style?: any }) {
   const styles = makeStyles(theme);
   const { settings, setSetting } = useSettings();
 
+  interface SettingsRowProps {
+    label: string,
+    children: ReactNode,
+    style?: StyleProp<TextStyle> | undefined
+  }
+
+  function SettingsRow({ label, children, style }: SettingsRowProps) {
+    const theme = useTheme();
+    const styles = makeStyles(theme);
+    return (
+      <View style={[styles.settingsRow, style]}>
+        <Text style={styles.settingsLabel}>{label}</Text>
+        {children}
+      </View>
+    );
+  }
+
   return (
     <View style={[styles.settingsPanel, style]}>
       <SettingsRow label="24-hour time">
@@ -29,7 +46,6 @@ export default function SettingsPanel({ style }: { style?: any }) {
       </SettingsRow>
 
       <SettingsRow style={{paddingVertical: 20}} label="Date format">
-        {/* <View style={{}}> */}
           <View style={styles.segmentedControl}>
             {(['DMY', 'MDY'] as const).map(fmt => (
               <TouchableOpacity
@@ -43,38 +59,10 @@ export default function SettingsPanel({ style }: { style?: any }) {
               </TouchableOpacity>
             ))}
           </View>
-          {/* <View style={{flexDirection: 'row', alignSelf: 'stretch', alignItems: 'center', justifyContent: 'space-between'}}>
-            <Text style={styles.settingsLabel}>Num/Long</Text>
-            <Switch
-              value={settings.showSeconds}
-              onValueChange={(v) => setSetting('showSeconds', v)}
-              thumbColor={theme.accentPrimary}
-              trackColor={{ false: theme.bgSelected, true: theme.accentSecondary }}
-            />
-          </View> */}
-        {/* </View> */}
       </SettingsRow>
     </View>
   );
 }
-
-interface SettingsRowProps {
-  label: string,
-  children: ReactNode,
-  style?: StyleProp<TextStyle> | undefined
-}
-
-function SettingsRow({ label, children, style }: SettingsRowProps) {
-  const theme = useTheme();
-  const styles = makeStyles(theme);
-  return (
-    <View style={[styles.settingsRow, style]}>
-      <Text style={styles.settingsLabel}>{label}</Text>
-      {children}
-    </View>
-  );
-}
-
 
 const makeStyles = (theme: ReturnType<typeof useTheme>) =>
   StyleSheet.create({

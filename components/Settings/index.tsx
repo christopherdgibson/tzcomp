@@ -34,23 +34,23 @@ export default function Settings({ style }: SettingsProps) {
         <View style={{backgroundColor: theme.bgContainer}}>
           <View style={styles.tabsContainer}>
             <TabButton style={styles.tabs}
-              tabName="design"
-              tabText="Card Design"
-              activeTab={activeTab}
-              setActiveTab={setActiveTab}
-            />
-            <TabButton style={styles.tabs}
               tabName="settings"
               tabText="Settings"
               activeTab={activeTab}
               setActiveTab={setActiveTab}
             />
+            <TabButton style={styles.tabs}
+              tabName="design"
+              tabText="Card Design"
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+            />
           </View>
-          {activeTab === "design" && (
-            <CardColorsPanel style={{backgroundColor: theme.bgContainer}}/>
-          )}
           {activeTab === "settings" && (
             <SettingsPanel />
+          )}
+          {activeTab === "design" && (
+            <CardColorsPanel style={{backgroundColor: theme.bgContainer}}/>
           )}
         </View>
       </Modal>
