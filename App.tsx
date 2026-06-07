@@ -19,14 +19,14 @@ export default function App() {
   return (
     // <SafeAreaView>
     //       </SafeAreaView>
-      <SettingsProvider>
-        <ThemeProvider>
-          <View style={styles.container}>
-            <TimeZoneApp timeZoneNames={timeZoneNames} />
-            <StatusBar style="auto" />
-          </View>
-        </ThemeProvider>
-      </SettingsProvider>
+    <SettingsProvider>
+      <ThemeProvider>
+        <View style={styles.container}>
+          <TimeZoneApp timeZoneNames={timeZoneNames} />
+          <StatusBar style="auto" />
+        </View>
+      </ThemeProvider>
+    </SettingsProvider>
   );
 }
 

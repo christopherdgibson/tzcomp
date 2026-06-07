@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
+import { Dimensions } from 'react-native';
 import { Keyboard, Modal, ScrollView, StyleProp, StyleSheet, Text, TextInput, TextStyle, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '@/hooks/use-theme';
-import { Typography, TypographyKey } from '@/constants/theme';
 import {KeyboardTypeOptions} from "react-native";
 
 import type {OnChange} from "@/constants/types";
@@ -26,10 +26,21 @@ export default function NumberDropdown({ style, fontStyle, display = n => n, key
       (_, i) => min + i
   );
 
+  interface DropdownPositionProperties {
+    top: number | undefined;
+    bottom: number | undefined;
+    left: number;
+    width: number;
+    height: number;
+  }
+
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
   const [selectedNumber, setSelectedNumber] = useState<number>(defaultOption ?? 0);
   const [search, setSearch] = useState("");
-  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 0 });
+  const [dropdownPos, setDropdownPos] = useState<DropdownPositionProperties>({ top: 0, bottom: 0, left: 0, width: 0, height: 0 });
+  const originalPos = useRef<typeof dropdownPos | null>(null);
+  const [opensUpward, setOpensUpward] = useState(false);
+  const maxHeight = 500;
 
   useEffect(() => {
     if (defaultOption != null) {
@@ -48,7 +59,7 @@ export default function NumberDropdown({ style, fontStyle, display = n => n, key
 
   const filteredOptions = dropdownOptions.filter(option =>
     option.toString().toLowerCase().includes(search.toLowerCase())
-    ||display(option).toString().toLowerCase().includes(search.toLowerCase())
+    || display(option).toString().toLowerCase().includes(search.toLowerCase())
   );
 
 //   const handleInputChange = (text: string, display: (input: number) => string | number = n => n) => {
@@ -79,29 +90,63 @@ export default function NumberDropdown({ style, fontStyle, display = n => n, key
     setIsDropdownOpen(prev => !prev);
   };
 
+  // Adjust dropdown size and position if obscured by keyboard
+  useEffect(() => {
+    const showSub = Keyboard.addListener('keyboardDidShow', (e) => {
+      const keyboardHeight = e.endCoordinates.height;
+      const screenHeight = e.endCoordinates.screenY;
 
+      setDropdownPos(prev => {
 
-// useEffect(() => {
-//   const sub = Keyboard.addListener('keyboardDidShow', (e) => {
-//     const keyboardHeight = e.endCoordinates.height;
-//     setDropdownPos(prev => {
-//       // if dropdown would be obscured by keyboard, move it above the button instead
-//       const screenHeight = e.endCoordinates.screenY;
-//       if (prev.top + 200 > screenHeight - keyboardHeight) {
-//         return { ...prev, top: prev.top - 200 - e.endCoordinates.height };
-//       }
-//       return prev;
-//     });
-//   });
-//   return () => sub.remove();
-// }, []);
+        let height = prev.height;
+        if (prev.bottom !== undefined) {
+          console.log('bottom prev:', prev);
+          if (keyboardHeight > prev.bottom) {
+            height = prev.height - (keyboardHeight - prev.bottom);
+          }
+          return { ...prev, bottom: Math.max(0, prev.bottom - keyboardHeight), height: height};
+        } else if (prev.top !== undefined) {
+          if (prev.top + prev.height > screenHeight) {
+            height = prev.height - keyboardHeight + 40;
+          }
+          return {...prev, height: height};
+        }
+        return prev;
+      });
+    });
+
+  const hideSub = Keyboard.addListener('keyboardDidHide', () => {
+    setDropdownPos(prev => originalPos.current ?? prev);
+  });
+
+  return () => {
+    showSub.remove();
+    hideSub.remove();
+  };
+}, []);
 
   const openDropdown = () => {
-    btnRef.current?.measureInWindow((x, y, width, height) => {
-      setDropdownPos({ top: y + height, left: x, width });
-      toggleDropdown();
-    });
+      const screenHeight = Dimensions.get('window').height;
+      
+      btnRef.current?.measureInWindow((x, y, width, height) => {
+        const spaceBelow = screenHeight - (y + height);
+        const spaceAbove = y;
+        let position;
+        
+        if (spaceAbove > spaceBelow) {
+          setOpensUpward(true);
+          position = { bottom: screenHeight - y, left: x, width, top: undefined, height: Math.min(spaceAbove - 50, maxHeight) };
+        } else {
+          setOpensUpward(false);
+          position = { top: y + height, left: x, width, bottom: undefined, height: Math.min(spaceBelow - 50, maxHeight) };
+        }
+        originalPos.current = position;  // store before any keyboard adjustment
+        setDropdownPos(position);
+        toggleDropdown();
+      });
   };
+
+  const modalPosition = { top: dropdownPos.top, bottom: dropdownPos.bottom, left: dropdownPos.left, minWidth: dropdownPos.width, maxHeight: dropdownPos.height };
 
   const closeDropdown = () => {
     setSearch('');
@@ -118,14 +163,13 @@ export default function NumberDropdown({ style, fontStyle, display = n => n, key
            <Text style={[fontStyle]}>{display(selectedNumber)}</Text><Text style={styles.dropbtnArrow}>{isDropdownOpen ? '▲' : '▼'}</Text>
         </View>
       </TouchableOpacity>
-
       <Modal visible={isDropdownOpen} transparent animationType="none">
           <TouchableOpacity
             style={StyleSheet.absoluteFill}
             onPress={() => closeDropdown()}
             activeOpacity={1}
           />
-          <View style={[styles.dropdownContent, { top: dropdownPos.top, left: dropdownPos.left, minWidth: dropdownPos.width }]}>
+          <View style={[styles.dropdownContent, modalPosition, opensUpward && { flexDirection: 'column-reverse' }]}>
             <TextInput
               style={styles.dropdownSearch}
               value={search}
@@ -133,10 +177,9 @@ export default function NumberDropdown({ style, fontStyle, display = n => n, key
               keyboardType={keyboardType}
               placeholder="Search..."
               placeholderTextColor={theme.fontSubtle}
-              autoFocus
+              autoFocus={false}
             />
-            {/* <ScrollView style={styles.dropdownContent}> */}
-             <ScrollView>
+            <ScrollView>
               {filteredOptions.map((option) => (
                 <TouchableOpacity
                   key={option}
@@ -157,17 +200,15 @@ export default function NumberDropdown({ style, fontStyle, display = n => n, key
   );
 }
 
-
 const makeStyles = (theme: ReturnType<typeof useTheme>) =>
   StyleSheet.create({
-
-    // .text-dropdown
     textDropdown: {
       position: 'relative',
       borderWidth: 1,
       borderColor: theme.fontColor, 
     },
     dropdownSearch: {
+      height: 40,
       paddingVertical: 8,
       paddingHorizontal: 12,
       borderBottomWidth: 1,
@@ -175,28 +216,22 @@ const makeStyles = (theme: ReturnType<typeof useTheme>) =>
       color: theme.fontColor,
       fontSize: 14,
     },
-    // .dropbtn
     dropbtn: {
       paddingVertical: 1,
       paddingHorizontal: 5,
       // minHeight:70,
       maxWidth: "0000".length * 25,
-      // borderWidth: 1,
-      // borderColor: theme.fontColor,
     },
     dropbtnInner: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
       alignContent: 'center',
-      // borderWidth: 1,
-      // borderColor: theme.fontColor,
       flex: 1,
     },
     dropbtnText: {
       // ...Typography.lg,
       color: theme.fontColor,
-      // fontSize: 36,
     },
     dropbtnArrow: {
       color: theme.fontColor,
@@ -207,8 +242,6 @@ const makeStyles = (theme: ReturnType<typeof useTheme>) =>
     dropbtnPressed: {
       backgroundColor: theme.bgSelected,
     },
-
-    // .dropdown-backdrop
     dropdownBackdrop: {
       position: 'absolute',  // inside a Modal this covers the screen
       top: 0, left: 0, right: 0, bottom: 0,
@@ -219,9 +252,8 @@ const makeStyles = (theme: ReturnType<typeof useTheme>) =>
       position: 'absolute',
       top: '100%',        // appears just below the button
       left: 0,
-      // zIndex: 10,
       minWidth: 200,
-      maxHeight: 500,
+      //maxHeight: 500,
       backgroundColor: theme.bgCard,
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 8 },
@@ -229,9 +261,7 @@ const makeStyles = (theme: ReturnType<typeof useTheme>) =>
       shadowRadius: 16,
       elevation: 10,
     },
-    // .dropdown-content li
     dropdownItem: {
-      color: theme.text,
       paddingVertical: 12,
       paddingHorizontal: 16,
     },
@@ -240,7 +270,6 @@ const makeStyles = (theme: ReturnType<typeof useTheme>) =>
       backgroundColor: theme.bgSelected,
     },
     dropdownItemText: {
-
+      color: theme.fontColor,
     }
-
   });
