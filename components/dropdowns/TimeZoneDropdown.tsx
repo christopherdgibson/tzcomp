@@ -86,7 +86,7 @@ export default function TimeZoneDropdown({ style, fontStyle, defaultOption, drop
             onChangeText={setSearch}
             placeholder="Search..."
             placeholderTextColor={theme.fontSubtle}
-            autoFocus
+            autoFocus={false}
           />
           <ScrollView>
             {filteredOptions.map((zone) => (

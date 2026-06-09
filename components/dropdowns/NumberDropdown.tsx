@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Dimensions } from 'react-native';
 import { Keyboard, Modal, ScrollView, StyleProp, StyleSheet, Text, TextInput, TextStyle, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '@/hooks/use-theme';
-import {KeyboardTypeOptions} from "react-native";
+import { KeyboardTypeOptions } from "react-native";
 
 import type {OnChange} from "@/constants/types";
 
@@ -22,8 +22,8 @@ export default function NumberDropdown({ style, fontStyle, display = n => n, key
   const theme = useTheme();
   const styles = makeStyles(theme);
   const dropdownOptions: number[] = Array.from(
-      { length: max - min + 1 }, 
-      (_, i) => min + i
+    { length: max - min + 1 }, 
+    (_, i) => min + i
   );
 
   interface DropdownPositionProperties {
@@ -38,8 +38,13 @@ export default function NumberDropdown({ style, fontStyle, display = n => n, key
   const [selectedNumber, setSelectedNumber] = useState<number>(defaultOption ?? 0);
   const [search, setSearch] = useState("");
   const [dropdownPos, setDropdownPos] = useState<DropdownPositionProperties>({ top: 0, bottom: 0, left: 0, width: 0, height: 0 });
-  const originalPos = useRef<typeof dropdownPos | null>(null);
+  const [windowMeasurements, setWindowMeasurements] = useState({ x: 0, y: 0, width: 0, height: 0, spaceBelow: 0, spaceAbove: 0, screenHeight: 0 });
   const [opensUpward, setOpensUpward] = useState(false);
+
+  const searchRef = useRef<string>(search);
+  const windowMeasurementsRef = useRef(windowMeasurements);
+  const originalPos = useRef<typeof dropdownPos | null>(null);
+  const opensUpwardRef = useRef<boolean>(false);
   const maxHeight = 500;
 
   useEffect(() => {
@@ -86,9 +91,14 @@ export default function NumberDropdown({ style, fontStyle, display = n => n, key
 //   }, [input]);
 
   const toggleDropdown = () => {
-    setSearch('');
+    setSearchInput('');
     setIsDropdownOpen(prev => !prev);
   };
+
+  function setSearchInput(input: string) {
+    setSearch(input);
+    searchRef.current = input;
+  }
 
   // Adjust dropdown size and position if obscured by keyboard
   useEffect(() => {
@@ -97,14 +107,14 @@ export default function NumberDropdown({ style, fontStyle, display = n => n, key
       const screenHeight = e.endCoordinates.screenY;
 
       setDropdownPos(prev => {
-
         let height = prev.height;
-        if (prev.bottom !== undefined) {
-          console.log('bottom prev:', prev);
-          if (keyboardHeight > prev.bottom) {
-            height = prev.height - (keyboardHeight - prev.bottom);
+        if (opensUpwardRef.current && prev.top !== undefined) {
+          let bottom = windowMeasurementsRef.current.spaceBelow + windowMeasurementsRef.current.height - keyboardHeight;
+          if (bottom < 0) {
+            height = Math.min(prev.height, screenHeight - 50);
+            bottom = 0;
           }
-          return { ...prev, bottom: Math.max(0, prev.bottom - keyboardHeight), height: height};
+          return { ...prev, top: undefined, bottom: bottom, height: height};
         } else if (prev.top !== undefined) {
           if (prev.top + prev.height > screenHeight) {
             height = prev.height - keyboardHeight + 40;
@@ -115,43 +125,56 @@ export default function NumberDropdown({ style, fontStyle, display = n => n, key
       });
     });
 
-  const hideSub = Keyboard.addListener('keyboardDidHide', () => {
-    setDropdownPos(prev => originalPos.current ?? prev);
-  });
+    const hideSub = Keyboard.addListener('keyboardDidHide', () => {
+      if (searchRef.current ==='' || !opensUpwardRef.current) {
+        setDropdownPos(prev => originalPos.current ?? prev);
+      } else {
+        setDropdownPos({...originalPos.current, top: undefined,
+          bottom: windowMeasurementsRef.current.spaceBelow + windowMeasurementsRef.current.height
+          } as DropdownPositionProperties);
+      }
+    });
 
-  return () => {
-    showSub.remove();
-    hideSub.remove();
-  };
-}, []);
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   const openDropdown = () => {
-      const screenHeight = Dimensions.get('window').height;
-      
-      btnRef.current?.measureInWindow((x, y, width, height) => {
-        const spaceBelow = screenHeight - (y + height);
-        const spaceAbove = y;
-        let position;
-        
-        if (spaceAbove > spaceBelow) {
-          setOpensUpward(true);
-          position = { bottom: screenHeight - y, left: x, width, top: undefined, height: Math.min(spaceAbove - 50, maxHeight) };
-        } else {
-          setOpensUpward(false);
-          position = { top: y + height, left: x, width, bottom: undefined, height: Math.min(spaceBelow - 50, maxHeight) };
-        }
-        originalPos.current = position;  // store before any keyboard adjustment
-        setDropdownPos(position);
-        toggleDropdown();
-      });
+    const screenHeight = Dimensions.get('window').height;
+    btnRef.current?.measureInWindow((x, y, width, height) => {
+      const spaceBelow = screenHeight - (y + height);
+      const spaceAbove = y;
+
+      const measurements = {x, y, width, height, spaceBelow, spaceAbove, screenHeight};
+      setWindowMeasurements(measurements);
+      windowMeasurementsRef.current = measurements;
+      let position;
+
+      if (spaceAbove > spaceBelow) {
+        setOpensUpward(true);
+        opensUpwardRef.current = true;
+        const menuHeight = Math.min(spaceAbove - 50, maxHeight);
+        position = { bottom: undefined, left: x, width, top: y - menuHeight, height: menuHeight };
+      } else {
+        setOpensUpward(false);
+        opensUpwardRef.current = false;
+        position = { top: y + height, left: x, width, bottom: undefined, height: Math.min(spaceBelow - 50, maxHeight) };
+      }
+      originalPos.current = position;  // store before any keyboard adjustment
+      setDropdownPos(position);
+      toggleDropdown();
+    });
   };
 
-  const modalPosition = { top: dropdownPos.top, bottom: dropdownPos.bottom, left: dropdownPos.left, minWidth: dropdownPos.width, maxHeight: dropdownPos.height };
-
+  const modalPosition = { top: dropdownPos.top, bottom: dropdownPos.bottom,
+    left: dropdownPos.left, minWidth: dropdownPos.width, maxHeight: dropdownPos.height };
+    
   const closeDropdown = () => {
-    setSearch('');
-    setIsDropdownOpen(false);
-  };
+      setSearchInput('');
+      setIsDropdownOpen(false);
+    };
 
   return (
     <View style={style}>
@@ -173,7 +196,7 @@ export default function NumberDropdown({ style, fontStyle, display = n => n, key
             <TextInput
               style={styles.dropdownSearch}
               value={search}
-              onChangeText={setSearch}
+              onChangeText={setSearchInput}
               keyboardType={keyboardType}
               placeholder="Search..."
               placeholderTextColor={theme.fontSubtle}
