@@ -18,19 +18,20 @@ export default function NumberUpDown({ style, fontStyle, input, display = n => n
   const [selectedNumber, setSelectedNumber] = useState<number>(input ?? 0);
   const [inputValue, setInputValue] = useState(display(selectedNumber).toString());
 
-// keep inputValue in sync if selectedNumber changes externally (e.g. arrow buttons)
-useEffect(() => {
-  setInputValue(display(selectedNumber).toString());
-}, [selectedNumber]);
+  // keep inputValue in sync if selectedNumber changes externally (e.g. arrow buttons)
+  useEffect(() => {
+    setInputValue(display(selectedNumber).toString());
+  }, [selectedNumber]);
 
-const handleInputChange = (text: string) => {
-  setInputValue(text);
-  const parsed = parseInt(text, 10);
-  if (!isNaN(parsed)) {
-    setSelectedNumber(parsed);
-    onChange(parsed);
-  }
-};
+  const handleInputChange = (text: string) => {
+    setInputValue(text);
+    const parsed = parseInt(text, 10);
+    if (!isNaN(parsed)) {
+      setSelectedNumber(parsed);
+      onChange(parsed);
+    }
+  };
+  
   useEffect(() => {
     if (input != null) {
         setSelectedNumber(input);
@@ -40,29 +41,29 @@ const handleInputChange = (text: string) => {
   return (
     <View style={[style, styles.numberUpDown]}>
       <TextInput
-          style={[fontStyle]}
-          value={inputValue}
-          onChangeText={handleInputChange}
-          keyboardType="numeric"
-          placeholderTextColor={theme.fontColor}
-        />
+        style={[fontStyle]}
+        value={inputValue}
+        onChangeText={handleInputChange}
+        keyboardType="numeric"
+        placeholderTextColor={theme.fontColor}
+      />
       <View style={styles.numberArrowContainer}>
         <TouchableOpacity
-                onPress={() => {
-                  onChange(selectedNumber + 1);
-                  setSelectedNumber(selectedNumber + 1);
-                }}
-              >
+          onPress={() => {
+            onChange(selectedNumber + 1);
+            setSelectedNumber(selectedNumber + 1);
+          }}
+        >
           <Text style={styles.upDownArrow}>
             {'▲'}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-                onPress={() => {
-                  onChange(selectedNumber - 1);
-                  setSelectedNumber(selectedNumber - 1);
-                }}
-              >
+          onPress={() => {
+            onChange(selectedNumber - 1);
+            setSelectedNumber(selectedNumber - 1);
+          }}
+        >
           <Text style={styles.upDownArrow}>
             {'▼'}
           </Text>

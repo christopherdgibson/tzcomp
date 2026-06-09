@@ -2,8 +2,8 @@ export function toPascalCase(input: string): string {
   return input.charAt(0).toUpperCase() + input.slice(1);
 }
 
-export function zoneClean(zone: string): string {
-    return zone.replace("/", " | ").replaceAll("_", " ")
+export function zoneClean(input: string): string {
+    return input.replace("/", " | ").replaceAll("_", " ")
 }
 
 export function padTimeDigits(input: number | null | undefined): string {

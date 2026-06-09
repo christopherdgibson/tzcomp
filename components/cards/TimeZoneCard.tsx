@@ -4,17 +4,18 @@ import { LinearGradient } from 'expo-linear-gradient';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 import type { Dispatch, SetStateAction } from "react";
-import type { OnChange } from '@/constants/types';
+//import type { OnChange } from '@/constants/types';
 
 import { useTheme } from '@/hooks/use-theme';
 import { useSettings } from '@/contexts/settings-context';
 import { Typography } from '@/constants/theme';
 
-import TimeZoneDropdown from "@/components/dropdowns/TimeZoneDropdown";
-import NumberDropdown from "@/components/dropdowns/NumberDropdown";
+// import TimeZoneDropdown from "@/components/dropdowns/TimeZoneDropdown";
+// import NumberDropdown from "@/components/dropdowns/NumberDropdown";
 import NumberUpDown from "@/components/dropdowns/NumberUpDown";
+import CustomDropdown from "@/components/dropdowns/CustomDropdown";
 import {GradientIcon} from "@/components/GradientIcon";
-import {getDaysInMonth, getHours12h, getHours24h, getMonthShort, padTimeDigits, partsToUTC, timeZoneParts} from "@/utils/timezoneUtils";
+import {getDaysInMonth, getHours12h, getHours24h, getMonthShort, zoneClean, padTimeDigits, partsToUTC, timeZoneParts} from "@/utils/timezoneUtils";
 
 interface TimeZoneLocalsProps {
   timeZoneName: string;
@@ -63,15 +64,15 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
     useEffect(() => {
         // Confirm re-render for savings/debugging
         //setCompareZone({timeZone: timeZoneDefault ?? "GMT", utcOffset: 0});
-        console.log("useEffect render compareZone: ", compareZone);
+        //console.log("useEffect render compareZone: ", compareZone);
         handleZoneSelect(timeZoneDefault ?? "GMT");
     }, []);
 
     // Handle changes in time zone name (e.g., standard/daylight)
     useEffect(() => {
-        console.log("useEffect currentTimeZone changed before.", currentTimeZone, "uctOffset:", compareZone?.utcOffset, 'compareZone:', compareZone, 'timeZoneDefault: ', timeZoneDefault);
+        //console.log("useEffect currentTimeZone changed before.", currentTimeZone, "uctOffset:", compareZone?.utcOffset, 'compareZone:', compareZone, 'timeZoneDefault: ', timeZoneDefault);
         handleZoneSelect(compareZone?.timeZone ?? "GMT", baseTime);
-        console.log("useEffect currentTimeZone changed.", currentTimeZone, "uctOffset:", compareZone?.utcOffset, 'compareZone:', compareZone, 'timeZoneDefault: ', timeZoneDefault);
+        //console.log("useEffect currentTimeZone changed.", currentTimeZone, "uctOffset:", compareZone?.utcOffset, 'compareZone:', compareZone, 'timeZoneDefault: ', timeZoneDefault);
     }, [currentTimeZone]);
 
     async function handleZoneSelect(timeZone: string, date?: Date) {
@@ -155,16 +156,18 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
             style={styles.cardWrapper}
-            >
+        >
             <View style={styles.localTimeCardContainer}>
                 <View style={styles.cardWrapper}>
                     <View style={styles.clockCard}>
                         <View style={styles.header}>
-                            <TimeZoneDropdown style={styles.clockIana}
+                            <CustomDropdown style={styles.clockIana}
                                 fontStyle={styles.tzText}
                                 defaultOption={timeZoneLocals?.timeZoneName}
-                                dropdownOptions={timeZoneNames}
-                                onOptionSelect={(timeZone: string) => handleZoneSelect(timeZone)}
+                                display={zoneClean}
+                                inputOptions={timeZoneNames}
+                                keyboardType={"default"}
+                                onOptionSelect={handleZoneSelect}
                             />
                             <MaterialCommunityIcons name="timetable" style={styles.textIcon} colors={theme.dividerBarGrad}/>                           
                         </View>
@@ -181,7 +184,7 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                         <View style={styles.clockDate}>
                             {/* Put day first if DMY setting */}
                             {settings.dateFormat === "DMY" && (
-                                <NumberDropdown
+                                <CustomDropdown
                                     style={styles.dropdownBtn}
                                     fontStyle={styles.dateText}
                                     defaultOption={timeZoneLocals?.timeDate}
@@ -198,7 +201,7 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                                     }
                                 />
                             )}
-                            <NumberDropdown style={styles.dropdownBtn}
+                            <CustomDropdown style={styles.dropdownBtn}
                                 fontStyle={styles.dateText}
                                 defaultOption={timeZoneLocals?.timeMonth}
                                 display={getMonthShort}
@@ -214,7 +217,7 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                             />
                             {/* Put day second if not DMY setting */}
                             {settings.dateFormat !== "DMY" && (
-                                <NumberDropdown
+                                <CustomDropdown
                                     style={styles.dropdownBtn}
                                     fontStyle={styles.dateText}
                                     defaultOption={timeZoneLocals?.timeDate}
@@ -250,11 +253,11 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                             style={styles.accentLine}
                         />
                         <View style={styles.clockTime}>
-                            <NumberDropdown
+                            <CustomDropdown
                                 style={styles.dropdownBtn}
                                 fontStyle={styles.clockDigits}
                                 defaultOption={settings.use24Hour ? timeZoneLocals?.timeHours : getHours12h(timeZoneLocals?.timeHours ?? 0)}
-                                display={settings.use24Hour ? padTimeDigits : getHours12h}
+                                display={settings.use24Hour ? padTimeDigits : getHours12h.toString}
                                 keyboardType={"numeric"}
                                 min={settings.use24Hour ? 0 : 1}
                                 max={settings.use24Hour ? 23 : 12}
@@ -288,7 +291,7 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                                 }
                             />
                             <Text style={styles.clockSep}>:</Text>
-                            <NumberDropdown
+                            <CustomDropdown
                                 style={styles.dropdownBtn}
                                 fontStyle={styles.clockDigits}
                                 defaultOption={timeZoneLocals?.timeMinutes}
