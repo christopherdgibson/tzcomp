@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { StyleProp, StyleSheet, Text, TextInput, TextStyle, TouchableOpacity, View } from 'react-native';
+import { Platform, StyleProp, StyleSheet, Text, TextInput, TextStyle, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '@/hooks/use-theme';
 
 import type {OnChange} from "@/constants/types";
@@ -41,7 +41,7 @@ export default function NumberUpDown({ style, fontStyle, input, display = n => n
   return (
     <View style={[style, styles.numberUpDown]}>
       <TextInput
-        style={[fontStyle]}
+        style={[fontStyle, styles.textInput]}
         value={inputValue}
         onChangeText={handleInputChange}
         keyboardType="numeric"
@@ -81,6 +81,15 @@ const makeStyles = (theme: ReturnType<typeof useTheme>) =>
       alignContent: 'center',
       alignItems: 'center',
     },
+    textInput: {
+      ...Platform.select({
+          web: {
+            minWidth: 100,
+            width: 0,
+            flexGrow: 1,
+          } as any,
+      })
+    },
     upDownArrow: {
       color: theme.fontColor,
       fontSize: 16,
@@ -90,5 +99,5 @@ const makeStyles = (theme: ReturnType<typeof useTheme>) =>
       paddingHorizontal: 6,
       justifyContent: 'center',
       alignSelf: 'center',
-    }
+    },
   });
