@@ -61,7 +61,7 @@ const makeStyles = (theme: ReturnType<typeof useTheme>) =>
       backgroundColor: theme.bgContainer,
       marginTop: 0,
       margin: 'auto',
-		  color: theme.fontColor,
+      color: theme.fontColor,
     },
     cardInnerContainer: {
       backgroundColor: theme.bgContainer,

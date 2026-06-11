@@ -1,17 +1,14 @@
 import { useEffect, useState } from "react";
-import { StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
 import type { Dispatch, SetStateAction } from "react";
-//import type { OnChange } from '@/constants/types';
 
 import { useTheme } from '@/hooks/use-theme';
 import { useSettings } from '@/contexts/settings-context';
 import { Typography } from '@/constants/theme';
 
-// import TimeZoneDropdown from "@/components/dropdowns/TimeZoneDropdown";
-// import NumberDropdown from "@/components/dropdowns/NumberDropdown";
 import NumberUpDown from "@/components/dropdowns/NumberUpDown";
 import CustomDropdown from "@/components/dropdowns/CustomDropdown";
 import {GradientIcon} from "@/components/GradientIcon";
@@ -70,9 +67,7 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
 
     // Handle changes in time zone name (e.g., standard/daylight)
     useEffect(() => {
-        //console.log("useEffect currentTimeZone changed before.", currentTimeZone, "uctOffset:", compareZone?.utcOffset, 'compareZone:', compareZone, 'timeZoneDefault: ', timeZoneDefault);
         handleZoneSelect(compareZone?.timeZone ?? "GMT", baseTime);
-        //console.log("useEffect currentTimeZone changed.", currentTimeZone, "uctOffset:", compareZone?.utcOffset, 'compareZone:', compareZone, 'timeZoneDefault: ', timeZoneDefault);
     }, [currentTimeZone]);
 
     async function handleZoneSelect(timeZone: string, date?: Date) {
@@ -102,8 +97,6 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
             const tzParts = timeZoneParts(date, timeZone);
             const utcMs = partsToUTC(utcParts);
             const tzMs = partsToUTC(tzParts);
-            // console.log("getTimezoneOffset utcParts.", utcParts);
-            // console.log("getTimezoneOffset tzParts.", tzParts);
 
             return (tzMs - utcMs) / 60000;
         } catch (e) {
@@ -118,14 +111,10 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
         if (localTime == null) return;
 
         const parts = timeZoneParts(baseTime, timeZone);
-        //console.log('refreshTimeZoneLocals timeZone: ', timeZone, 'utcOffset: ', utcOffset, 'parts: ', parts);
 
         return {
             timeZoneName: timeZone,
             localTime,
-            // timeFullDate: localTime.toLocaleString("default", {
-            //     day: "numeric", month: "long", year: "numeric",
-            // }),
             timeFullDate: new Intl.DateTimeFormat("default", {
                 day: "numeric", month: "long", year: "numeric",
                 timeZone,
@@ -133,7 +122,6 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
             timeDate: parts.day,
             timeMonth: parts.month,
             timeYear: parts.year,
-            // timeDow: localTime.toLocaleString("default", { weekday: "long" }),
             timeDow: new Intl.DateTimeFormat("default", {
                 weekday: "long",
                 timeZone,
@@ -236,7 +224,7 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                             )}
                             <NumberUpDown 
                                 style={styles.dropdownBtn}
-                                fontStyle={styles.dateText}
+                                fontStyle={[styles.dateText]}
                                 input={timeZoneLocals?.timeYear} onChange={
                                     (year) => {
                                         const tzParts = timeZoneParts(baseTime, timeZoneLocals?.timeZoneName ?? "UTC");
@@ -257,7 +245,7 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                                 style={styles.dropdownBtn}
                                 fontStyle={styles.clockDigits}
                                 defaultOption={settings.use24Hour ? timeZoneLocals?.timeHours : getHours12h(timeZoneLocals?.timeHours ?? 0)}
-                                display={settings.use24Hour ? padTimeDigits : getHours12h.toString}
+                                display={(hours) => (settings.use24Hour ? padTimeDigits(hours) : getHours12h(hours).toString())}
                                 keyboardType={"numeric"}
                                 min={settings.use24Hour ? 0 : 1}
                                 max={settings.use24Hour ? 23 : 12}
@@ -282,11 +270,6 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                                         const utcMs = partsToUTC(tzParts, {hour: hours24}) - adjustment;
                                        
                                         setOverrideTime(new Date(utcMs));
-
-                                        // console.log('hour dropdown hourSelected: ', hours);
-                                        // console.log('hour dropdown tzParts: ', tzParts);
-
-                                        // console.log('utc NewDate: ', new Date(utcMs));
                                     }
                                 }
                             />
@@ -456,11 +439,6 @@ const makeStyles = (theme: ReturnType<typeof useTheme>) =>
             ...Typography.lgBook,
             letterSpacing: 0.88,        // RN absolute values for 'em': 11 * 0.08
             color: theme.fontColor,
-            // alignSelf: 'center',
-            // marginBottom: 6,
-            // borderWidth: 1,
-            // borderColor: theme.fontColor, 
-            // flex: 1,
         },
         clockDivider: {
             height: 2,

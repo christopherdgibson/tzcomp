@@ -35,29 +35,6 @@ export default function CustomDropdown<T extends string | number>({ style, fontS
     ? Array.from({ length: max - min + 1 }, (_, i) => (min + i) as T)
     : (inputOptions as T[]);
 
-  // const dropdownOptions: string[] = (min !== undefined && max !== undefined) ? 
-  //   (Array.from(
-  //     { length: max - min + 1 }, 
-  //     (_, i) => display(min + i as T)
-  //   ))
-  //   : inputOptions.map((option) => {
-  //   const optionNumber = option as number;
-  //   if (optionNumber !== null && optionNumber !== undefined) {
-  //     return display(optionNumber);
-  //   } else {
-  //     return option.toString();
-  //   }
-  // });
-
-  // const tempOptions = inputOptions.map((option) => {
-  //   const optionNumber = option as number;
-  //   if (optionNumber !== null && optionNumber !== undefined) {
-  //     return display(optionNumber);
-  //   } else {
-  //     return option.toString();
-  //   }
-  // });
-
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
   const [selectedNumber, setSelectedNumber] = useState<T>(defaultOption ?? (min ?? 0) as T);
   const [search, setSearch] = useState("");
@@ -77,42 +54,10 @@ export default function CustomDropdown<T extends string | number>({ style, fontS
     }
   }, [defaultOption]);
 
-  // useEffect(() => {
-  //   const handleKey = (e: KeyboardEvent) => {
-  //       if (e.key.length === 1) setSearch(prev => prev + e.key);
-  //       // if (e.key === 'Backspace') setSearch(prev => prev.slice(0, -1));
-  //   };
-  //   window.addEventListener("keydown", handleKey);
-  //   return () => window.removeEventListener("keydown", handleKey);
-  // }, [isDropdownOpen]);
-
   const filteredOptions = dropdownOptions.filter(option =>
     option.toString().toLowerCase().includes(search.toLowerCase())
     || display(option).toString().toLowerCase().includes(search.toLowerCase())
   );
-
-//   const handleInputChange = (text: string, display: (input: number) => string | number = n => n) => {
-  
-//   let parsed = parseInt(text, 10);
-//   let searchString;
-//   if (parsed) {
-//     searchString = display(parsed) as string;
-//   } else {
-//     searchString = text;
-
-//   }
-//   setSearch(searchString);
-
-//   if (!isNaN(parsed)) {
-//     setSelectedNumber(parsed);
-//     onOptionSelect(searchString);
-//   }
-// };
-//   useEffect(() => {
-//     if (input != null) {
-//         setSelectedNumber(input);
-//     }
-//   }, [input]);
 
   const toggleDropdown = () => {
     setSearchInput('');
@@ -129,32 +74,27 @@ export default function CustomDropdown<T extends string | number>({ style, fontS
     const showSub = Keyboard.addListener('keyboardDidShow', (e) => {
       const keyboardHeight = e.endCoordinates.height;
       const screenHeight = e.endCoordinates.screenY;
-      // console.log('keyboardDidShow opensUpward:', opensUpwardRef.current, 'windowMeasurements:', windowMeasurementsRef.current);
       setDropdownPos(prev => {
-        let height = prev.height;
+        let dropdownHeight = prev.height;
         if (opensUpwardRef.current && prev.top !== undefined) {
           let bottom = windowMeasurementsRef.current.spaceBelow + windowMeasurementsRef.current.height - keyboardHeight;
-          //console.log('bottom:',bottom);
           if (bottom < 0) {
-            height = Math.min(prev.height, screenHeight - 50);
+            dropdownHeight = Math.min(prev.height, screenHeight - 50);
             bottom = 0;
           }
-          return { ...prev, top: undefined, bottom: bottom, height: height};
+          return { ...prev, top: undefined, bottom: bottom, height: dropdownHeight};
         } else if (prev.top !== undefined) {
-          // console.log('keyboardDidShow opensUpward:', opensUpwardRef.current, 'windowMeasurements:', windowMeasurementsRef.current);
-          // console.log('keyboardDidShow prev:', prev);
           if (prev.top + prev.height > screenHeight) {
-            // height = prev.height - keyboardHeight + 40;
-            height = screenHeight - prev.top - windowMeasurementsRef.current.height - 40;
+            dropdownHeight = windowMeasurementsRef.current.screenHeight - keyboardHeight - prev.top - 10;
           }
-          return {...prev, height: height};
+          return {...prev, height: dropdownHeight};
         }
         return prev;
       });
     });
 
     const hideSub = Keyboard.addListener('keyboardDidHide', () => {
-      if (searchRef.current ==='' || !opensUpwardRef.current) {
+      if (searchRef.current === '' || !opensUpwardRef.current) {
         setDropdownPos(prev => originalPos.current ?? prev);
       } else {
         setDropdownPos({...originalPos.current, top: undefined,
@@ -176,7 +116,6 @@ export default function CustomDropdown<T extends string | number>({ style, fontS
       const spaceAbove = y;
 
       const measurements = {x, y, width, height, spaceBelow, spaceAbove, screenHeight};
-      //console.log('measurements:', {x, y, width, height, spaceBelow, spaceAbove, screenHeight});
       setWindowMeasurements(measurements);
       windowMeasurementsRef.current = measurements;
       let position;
@@ -316,3 +255,4 @@ const makeStyles = (theme: ReturnType<typeof useTheme>) =>
       color: theme.fontColor,
     }
   });
+  
