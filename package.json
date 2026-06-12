@@ -6,7 +6,8 @@
     "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "deploy": "expo export --platform web && powershell -Command \"(Get-Content dist/index.html) -replace '/_expo', '_expo' -replace '/favicon.ico', 'favicon.ico' | Set-Content dist/index.html\" && powershell -Command \"Get-ChildItem -Path dist/_expo/static/js/web -Filter *.js | ForEach-Object { (Get-Content $_.FullName) -replace '\\\"/assets/node_modules/', '\\\"assets/node_modules/' -replace '\\\"/assets/assets/', '\\\"assets/assets/' | Set-Content $_.FullName }\" && powershell -Command \"New-Item dist/.nojekyll -ItemType File -Force\" && powershell -Command \"Set-Content dist/.gitignore ''\" && gh-pages --no-history --dotfiles -d dist"
   },
   "dependencies": {
     "@expo/metro-runtime": "~4.0.1",
@@ -30,6 +31,7 @@
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@types/react": "~18.3.12",
+    "gh-pages": "^6.3.0",
     "typescript": "^5.3.3"
   },
   "private": true

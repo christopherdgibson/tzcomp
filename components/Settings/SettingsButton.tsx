@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Modal, StyleProp, StyleSheet, TextStyle, TouchableOpacity, View } from 'react-native';
+import { Modal, Platform, StyleProp, StyleSheet, TextStyle, TouchableOpacity, View } from 'react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useTheme } from '@/hooks/use-theme';
 import CardColorsPanel from '@/components/Settings/ui-panels/CardColorsPanel';
@@ -7,10 +7,12 @@ import SettingsPanel from '@/components/Settings/ui-panels/SettingsPanel';
 import TabButton from '@/components/Settings/ui-panels/TabButton';
 
 interface SettingsProps {
-    style: StyleProp<TextStyle> | undefined,
+    iconStyle?: StyleProp<TextStyle> | undefined,
+    modalStyle?: StyleProp<TextStyle> | undefined,
+    modalPosition?: StyleProp<TextStyle> | undefined,
 }
 
-export default function Settings({ style }: SettingsProps) {
+export default function SettingsButton({ iconStyle, modalPosition, modalStyle }: SettingsProps) {
   const [activeTab, setActiveTab] = useState("design");
   const theme = useTheme();
   const styles = makeStyles(theme);
@@ -22,7 +24,7 @@ export default function Settings({ style }: SettingsProps) {
         style={styles.settingsContainer}
         onPress={() => setIsSettingsOpen(true)}
       >
-        <MaterialCommunityIcons name="dots-vertical" style={[style]} />
+        <MaterialCommunityIcons name="dots-vertical" style={iconStyle} />
       </TouchableOpacity>
       <Modal visible={isSettingsOpen} transparent animationType="fade">
         <TouchableOpacity
@@ -30,8 +32,7 @@ export default function Settings({ style }: SettingsProps) {
           onPress={() => setIsSettingsOpen(false)}
           activeOpacity={1}
         />
-        
-        <View style={{backgroundColor: theme.bgContainer}}>
+          <View style={[modalStyle, modalPosition]}>
           <View style={styles.tabsContainer}>
             <TabButton style={styles.tabs}
               tabName="settings"
@@ -68,9 +69,9 @@ const makeStyles = (theme: ReturnType<typeof useTheme>) =>
       flex: 1,
     },
     settingsContainer: {
-      position: 'relative',
+      // position: 'relative',
       width: '100%',
-      padding:10,
+      padding: 10,
       marginTop: 0,
       margin: 'auto',
 	    color: theme.fontColor,

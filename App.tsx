@@ -8,8 +8,6 @@ import TimeZoneApp from "@/components/TimeZoneApp";
 import timeZoneData from "@/constants/time-zone-names.json";
 const timeZoneNames = timeZoneData.timeZoneNames;
 
-import WebDemoBanner from "@/components/WebDemoBanner";
-
 export default function App() {
     const [fontsLoaded] = useFonts({
     'AvenirLTStdLight': require('./assets/fonts/AvenirLTStdLight.otf'),
@@ -25,7 +23,6 @@ export default function App() {
       <ThemeProvider>
         <View style={styles.pageBackground}>
           <View style={[styles.container, styles.phoneFrame]}>
-            <WebDemoBanner/>
             <TimeZoneApp timeZoneNames={timeZoneNames} />
             <StatusBar style="auto" />
           </View>
