@@ -21,8 +21,8 @@ export default function App() {
     //       </SafeAreaView>
     <SettingsProvider>
       <ThemeProvider>
-        <View style={styles.pageBackground}>
-          <View style={[styles.container, styles.phoneFrame]}>
+        <View style={Platform.OS === 'web' ? styles.pageBackground : null}>
+          <View style={Platform.OS === 'web' ? [styles.container, styles.phoneFrame] : null}>
             <TimeZoneApp timeZoneNames={timeZoneNames} />
             <StatusBar style="auto" />
           </View>
@@ -41,6 +41,18 @@ const styles = StyleSheet.create({
     width: Platform.OS === 'web' ? undefined : '100%',
     maxWidth: Platform.OS === 'web' ? 480 : undefined,
   },
+  pageBackground: {
+    ...Platform.select({
+      web: {
+        minHeight: '100vh',
+        width: '100%',
+        backgroundColor: '#0f0f0f',
+      } as any,
+      android: {
+        width: '100%'
+      }
+    })
+  },
   // Web-only wrapper styles
   phoneFrame: {
     ...Platform.select({
@@ -57,15 +69,9 @@ const styles = StyleSheet.create({
         alignSelf: 'center',
         marginVertical: 40,
       } as any,
+      android: {
+        width: '100%'
+      }
     })
   },
-  pageBackground: {
-    ...Platform.select({
-      web: {
-        minHeight: '100vh',
-        width: '100%',
-        backgroundColor: '#0f0f0f',
-      } as any,
-    })
-  }
 });
