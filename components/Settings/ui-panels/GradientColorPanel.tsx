@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { StyleProp, StyleSheet, TextStyle, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useTheme } from '@/hooks/use-theme';
@@ -13,7 +14,7 @@ interface GradientColorPanelProps {
 export default function GradientColorPanel({ style }: GradientColorPanelProps) {
   const { preset, setPreset, customColors, setCustomColors } = useThemeContext();
   const theme = useTheme();
-  const styles = makeStyles(theme);
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const GRADIENTS = Object.keys(GradientPalette) as GradientKeys[];
 
   const setGradient = (gradient: string ) => {

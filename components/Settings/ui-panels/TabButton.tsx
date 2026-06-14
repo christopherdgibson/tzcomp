@@ -1,4 +1,5 @@
 import type { Dispatch, SetStateAction } from "react";
+import {useMemo} from 'react';
 import { StyleProp, StyleSheet, Text, TextStyle, TouchableOpacity } from 'react-native';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -14,7 +15,7 @@ interface TabButtonProps {
 
 export default function TabButton({ style, tabName, tabText, activeTab, setActiveTab }: TabButtonProps) {
     const theme = useTheme();
-    const styles = makeStyles(theme);
+    const styles = useMemo(() => makeStyles(theme), [theme]);
 
     return (
         <TouchableOpacity

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Modal, StyleProp, StyleSheet, Text, TextStyle, TouchableOpacity, View } from 'react-native';
 import { ColorPicker } from 'react-native-color-picker';
 // import ColorPicker, { Panel1, Swatches, Preview, OpacitySlider, HueSlider, returnedResults } from "reanimated-color-picker";
@@ -20,7 +20,7 @@ interface CardColorsPanelProps {
 export default function CustomColorsPanel({ style }: CardColorsPanelProps) {
   const { customColors, setCustomColors } = useThemeContext();
   const theme = useTheme();
-  const styles = makeStyles(theme);
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [activeSubTab, setActiveSubTab] = useState<string>("background");
 
   const colorMap = {

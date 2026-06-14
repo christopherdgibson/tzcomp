@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { StyleProp, StyleSheet, Text, TextStyle, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '@/hooks/use-theme';
 import { Typography } from '@/constants/theme';
@@ -12,7 +12,7 @@ export default function RestoreToDefaults({style}: RestoreToDefaultsProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { preset, setPreset } = useThemeContext();
   const theme = useTheme();
-  const styles = makeStyles(theme);
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const isDefault = preset === 'default';
 
   return (

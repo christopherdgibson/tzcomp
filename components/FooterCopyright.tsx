@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { useTheme } from '@/hooks/use-theme';
@@ -5,7 +6,7 @@ import { Typography } from '@/constants/theme';
 
 export default function FooterCopyright() {
   const theme = useTheme();
-  const styles = makeStyles(theme);
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const year = new Date().getFullYear();
 
   return (
@@ -20,7 +21,6 @@ export default function FooterCopyright() {
     </View>
   );
 }
-
 
 const makeStyles = (theme: ReturnType<typeof useTheme>) =>
     StyleSheet.create({

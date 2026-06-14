@@ -1,10 +1,11 @@
+import { useMemo } from 'react';
 import { Platform, View, Text, TouchableOpacity, StyleSheet, Linking } from 'react-native';
 import { useTheme } from '@/hooks/use-theme';
 
 export default function WebDemoBanner() {
     if (Platform.OS !== 'web') return null;
     const theme = useTheme();
-    const styles = makeStyles(theme);
+    const styles = useMemo(() => makeStyles(theme), [theme]);
 
     return (
         <>

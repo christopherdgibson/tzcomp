@@ -1,11 +1,13 @@
-import { ReactNode } from 'react';
+import { memo, ReactNode, useMemo } from 'react';
 import { StyleProp, StyleSheet, Switch, Text, TextStyle, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '@/hooks/use-theme';
 import { useSettings } from '@/contexts/settings-context';
 
-export default function SettingsPanel({ style }: { style?: any }) {
+export default memo(SettingsPanel);
+
+function SettingsPanel({ style }: { style?: StyleProp<TextStyle> | undefined, }) {
   const theme = useTheme();
-  const styles = makeStyles(theme);
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const { settings, setSetting } = useSettings();
 
   interface SettingsRowProps {
@@ -28,6 +30,9 @@ export default function SettingsPanel({ style }: { style?: any }) {
   return (
     <View style={[styles.settingsPanel, style]}>
       <SettingsRow label="24-hour time">
+        {/* <CustomSwitch value={settings.use24Hour}
+          onValueChange={(v) => setSetting('use24Hour', v)}
+          theme={theme} /> */}
         <Switch
           value={settings.use24Hour}
           onValueChange={(v) => setSetting('use24Hour', v)}
@@ -70,38 +75,38 @@ const makeStyles = (theme: ReturnType<typeof useTheme>) =>
     //gap: 16,
     //paddingVertical: 18,
     paddingHorizontal: 10,
-},
-settingsRow: {
-  flexDirection: 'row',
-  justifyContent: 'space-between',
-  alignItems: 'center',
-  paddingVertical: 8,
-  borderBottomWidth: 1,
-  borderBottomColor: theme.bgSelected,
-},
-settingsLabel: {
-  fontSize: 14,
-  color: theme.fontColor,
-},
-segmentedControl: {
-  flexDirection: 'row',
-  borderRadius: 6,
-  borderWidth: 1,
-  borderColor: theme.accentPrimary,
-  overflow: 'hidden',
-},
-segment: {
-  paddingVertical: 4,
-  paddingHorizontal: 10,
-},
-segmentActive: {
-  backgroundColor: theme.accentPrimary,
-},
-segmentText: {
-  fontSize: 12,
-  color: theme.accentPrimary,
-},
-segmentTextActive: {
-  color: '#fff',
-},
+    },
+    settingsRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingVertical: 8,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.bgSelected,
+    },
+    settingsLabel: {
+      fontSize: 14,
+      color: theme.fontColor,
+    },
+    segmentedControl: {
+      flexDirection: 'row',
+      borderRadius: 6,
+      borderWidth: 1,
+      borderColor: theme.accentPrimary,
+      overflow: 'hidden',
+    },
+    segment: {
+      paddingVertical: 4,
+      paddingHorizontal: 10,
+    },
+    segmentActive: {
+      backgroundColor: theme.accentPrimary,
+    },
+    segmentText: {
+      fontSize: 12,
+      color: theme.accentPrimary,
+    },
+    segmentTextActive: {
+      color: '#fff',
+    },
   });

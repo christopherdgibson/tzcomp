@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useMemo, useEffect, useRef, useState } from "react";
 import { Platform, ScrollView, StyleProp, StyleSheet, Text, TextStyle, View } from 'react-native';
 import { useTheme } from '@/hooks/use-theme';
 import TimeZoneCard from "@/components/cards/TimeZoneCard";
@@ -16,7 +16,7 @@ interface TimeZoneAppProps {
 
 export default function TimeZoneApp({ style, timeZoneNames }: TimeZoneAppProps) {
     const theme = useTheme();
-    const styles = makeStyles(theme);
+    const styles = useMemo(() => makeStyles(theme), [theme]);
     const [time, setTime] = useState<Date>(new Date());
     const [overrideTime, setOverrideTime] = useState<Date | null>(null);
     const [compareZones, setCompareZones] = useState<number>(2);
@@ -26,7 +26,10 @@ export default function TimeZoneApp({ style, timeZoneNames }: TimeZoneAppProps) 
 
     const bannerRef = useRef<View>(null);
     const [bannerLayout, setBannerLayout] = useState({ top: 150, left: 0, width: 390 });
-    const settingsPosition = Platform.OS === 'web' ? bannerLayout : undefined;
+    const settingsPosition = useMemo(() => 
+        Platform.OS === 'web' ? bannerLayout : undefined, 
+        [bannerLayout]
+    );
 
     useEffect(() => {
     if (overrideTime === null) {
@@ -86,7 +89,8 @@ const makeStyles = (theme: ReturnType<typeof useTheme>) =>
         padding: 0,
         gap: 10,
         marginHorizontal: 20,
-        paddingVertical: Platform.OS === 'web' ? 10 : 40,
+        paddingVertical: 20,
+        // paddingVertical: Platform.OS === 'web' ? 10 : 40,
     },
     localTimeHeader: {
       flexDirection: 'row',
@@ -104,7 +108,7 @@ const makeStyles = (theme: ReturnType<typeof useTheme>) =>
       flex: 1,
     },
     cardColumn: {
-        gap:10,
+        gap: 10,
     },
     svgIcon: {
         //width: 90,

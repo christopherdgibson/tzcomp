@@ -29,9 +29,11 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     });
   }, []);
   const setSetting = <K extends keyof Settings>(key: K, value: Settings[K]) => {
-    const updated = { ...settings, [key]: value };
-    setSettings(updated);
-    AsyncStorage.setItem('settings', JSON.stringify(updated));
+    setSettings(prev => {
+        const updated = { ...prev, [key]: value };
+        AsyncStorage.setItem('settings', JSON.stringify(updated));
+        return updated;
+    });
   };
   return (
     <SettingsContext.Provider value={{ settings, setSetting }}>

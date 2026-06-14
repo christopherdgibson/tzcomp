@@ -1,10 +1,12 @@
-import { useState } from "react";
-import { Modal, Platform, StyleProp, StyleSheet, TextStyle, TouchableOpacity, View } from 'react-native';
+import { memo, useMemo, useState } from "react";
+import { Modal, StyleProp, StyleSheet, TextStyle, TouchableOpacity, View } from 'react-native';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useTheme } from '@/hooks/use-theme';
 import CardColorsPanel from '@/components/Settings/ui-panels/CardColorsPanel';
 import SettingsPanel from '@/components/Settings/ui-panels/SettingsPanel';
 import TabButton from '@/components/Settings/ui-panels/TabButton';
+
+export default memo(SettingsButton);
 
 interface SettingsProps {
     iconStyle?: StyleProp<TextStyle> | undefined,
@@ -12,10 +14,10 @@ interface SettingsProps {
     modalPosition?: StyleProp<TextStyle> | undefined,
 }
 
-export default function SettingsButton({ iconStyle, modalPosition, modalStyle }: SettingsProps) {
+function SettingsButton({ iconStyle, modalPosition, modalStyle }: SettingsProps) {
   const [activeTab, setActiveTab] = useState("design");
   const theme = useTheme();
-  const styles = makeStyles(theme);
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
 
   return (

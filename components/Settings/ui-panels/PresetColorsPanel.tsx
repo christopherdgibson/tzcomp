@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '@/hooks/use-theme';
 import { PresetKeys, Presets } from '@/constants/theme';
@@ -9,7 +9,7 @@ import {toPascalCase} from '@/utils/timezoneUtils';
 export default function PresetColorsPanel() {
   const { preset, setPreset } = useThemeContext();
   const theme = useTheme();
-  const styles = makeStyles(theme);
+  const styles = useMemo(() => makeStyles(theme), [theme]);
   const ACCENTS = Object.keys(Presets) as PresetKeys[];
   const avoidKeys = 'default' as PresetKeys;
 
