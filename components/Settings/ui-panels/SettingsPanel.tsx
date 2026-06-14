@@ -1,7 +1,8 @@
 import { memo, ReactNode, useMemo } from 'react';
-import { StyleProp, StyleSheet, Switch, Text, TextStyle, TouchableOpacity, View } from 'react-native';
+import { Platform, StyleProp, StyleSheet, Switch, Text, TextStyle, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '@/hooks/use-theme';
 import { useSettings } from '@/contexts/settings-context';
+import CustomSwitch from '@/components/Settings/ui-buttons/CustomSwitch';
 
 export default memo(SettingsPanel);
 
@@ -30,24 +31,33 @@ function SettingsPanel({ style }: { style?: StyleProp<TextStyle> | undefined, })
   return (
     <View style={[styles.settingsPanel, style]}>
       <SettingsRow label="24-hour time">
-        {/* <CustomSwitch value={settings.use24Hour}
-          onValueChange={(v) => setSetting('use24Hour', v)}
-          theme={theme} /> */}
-        <Switch
-          value={settings.use24Hour}
-          onValueChange={(v) => setSetting('use24Hour', v)}
-          thumbColor={theme.accentPrimary}
-          trackColor={{ false: theme.bgSelected, true: theme.accentSecondary }}
-        />
+        {Platform.OS === 'web' ?
+          <CustomSwitch value={settings.use24Hour}
+            onValueChange={(v) => setSetting('use24Hour', v)}
+            theme={theme} />
+          :
+          <Switch
+            value={settings.use24Hour}
+            onValueChange={(v) => setSetting('use24Hour', v)}
+            thumbColor={theme.accentPrimary}
+            trackColor={{ false: theme.bgSelected, true: theme.accentSecondary }}
+          />
+        }
       </SettingsRow>
 
       <SettingsRow label="Show seconds">
-        <Switch
-          value={settings.showSeconds}
-          onValueChange={(v) => setSetting('showSeconds', v)}
-          thumbColor={theme.accentPrimary}
-          trackColor={{ false: theme.bgSelected, true: theme.accentSecondary }}
-        />
+        {Platform.OS === 'web' ?
+          <CustomSwitch value={settings.showSeconds}
+            onValueChange={(v) => setSetting('showSeconds', v)}
+            theme={theme} />
+            :
+          <Switch
+            value={settings.showSeconds}
+            onValueChange={(v) => setSetting('showSeconds', v)}
+            thumbColor={theme.accentPrimary}
+            trackColor={{ false: theme.bgSelected, true: theme.accentSecondary }}
+          />
+        }
       </SettingsRow>
 
       <SettingsRow style={{paddingVertical: 20}} label="Date format">

@@ -78,6 +78,7 @@ const makeStyles = (theme: ReturnType<typeof useTheme>) =>
     cardContainer: {
       position: 'relative',
       width: '100%',
+      height: '100%',
       backgroundColor: theme.bgContainer,
       marginTop: 0,
       margin: 'auto',
@@ -89,8 +90,7 @@ const makeStyles = (theme: ReturnType<typeof useTheme>) =>
         padding: 0,
         gap: 10,
         marginHorizontal: 20,
-        paddingVertical: 20,
-        // paddingVertical: Platform.OS === 'web' ? 10 : 40,
+        paddingVertical: Platform.OS === 'web' ? 10 : 40,
     },
     localTimeHeader: {
       flexDirection: 'row',

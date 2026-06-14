@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Platform, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
@@ -11,6 +11,7 @@ import { Typography } from '@/constants/theme';
 
 import NumberUpDown from "@/components/dropdowns/NumberUpDown";
 import CustomDropdown from "@/components/dropdowns/CustomDropdown";
+import CustomSwitch from '@/components/Settings/ui-buttons/CustomSwitch';
 import {GradientIcon} from "@/components/GradientIcon";
 import {getDaysInMonth, getHours12h, getHours24h, getMonthShort, zoneClean, padTimeDigits, partsToUTC, timeZoneParts} from "@/utils/timezoneUtils";
 
@@ -50,8 +51,8 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
     const [apiError, setApiError] = useState<string | null>(null);
     // const [isTimeSelectOpen, setIsTimeSelectOpen] = useState<boolean>(false);
     
-    const baseTime = overrideTime ?? time;
-    const adjustment = (compareZone?.utcOffset ?? 0) * 60000;
+    const baseTime = useMemo(()=>overrideTime ?? time, [overrideTime]);
+    const adjustment = useMemo(()=>(compareZone?.utcOffset ?? 0) * 60000, [compareZone?.utcOffset]);
     const timeZoneLocals = refreshTimeZoneLocals(compareZone?.timeZone, compareZone?.utcOffset);
     const currentHour = timeZoneLocals?.timeHours ?? 0;
     const currentTimeZone = timeZoneLocals?.timeZoneShort ?? "GMT";
@@ -60,8 +61,6 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
     // Handle initial mount
     useEffect(() => {
         // Confirm re-render for savings/debugging
-        //setCompareZone({timeZone: timeZoneDefault ?? "GMT", utcOffset: 0});
-        //console.log("useEffect render compareZone: ", compareZone);
         handleZoneSelect(timeZoneDefault ?? "GMT");
     }, []);
 
@@ -301,13 +300,19 @@ export default function TimeZoneCard({timeZoneNames, time, overrideTime, setOver
                             }
                             {!settings.use24Hour && 
                                 <View style={styles.clockAmPmToggle}>
-                                    <Text style={styles.clockAmPm}>{isPm ? 'pm' : 'am'}</Text> 
-                                    <Switch
+                                    <Text style={styles.clockAmPm}>{isPm ? 'pm' : 'am'}</Text>
+                                    {Platform.OS === 'web' ?
+                                        <CustomSwitch value={isPm}
+                                        onValueChange={handleAmPmToggle}
+                                        theme={theme} />
+                                        :
+                                        <Switch
                                         value={isPm}
                                         onValueChange={handleAmPmToggle}
                                         thumbColor={theme.accentPrimary}
                                         trackColor={{ false: theme.bgSelected, true: theme.accentSecondary }}
                                         />
+                                    }
                                 </View>
                             }
                             {overrideTime !== null &&
